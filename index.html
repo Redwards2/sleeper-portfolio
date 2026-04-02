@@ -986,8 +986,16 @@ async function fetchFreeAgents(leagueId) {
     }
   }
 
-  // Both sides forced to string for safe comparison
-  return Object.keys(playersDb).filter(pid => !rostered.has(String(pid)));
+  // Only return players whose name appears in the KTC CSV — filters to ~500 relevant players
+  // and eliminates retired/historical/irrelevant players automatically
+  return Object.keys(playersDb).filter(pid => {
+    if (rostered.has(String(pid))) return false;
+    const p = playersDb[pid];
+    if (!p) return false;
+    const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
+    if (!name) return false;
+    return ktcMap[normalizeName(name)] !== undefined;
+  });
 }
 
 // Given a league's free agent pid list, find the best KTC pickup
@@ -1155,16 +1163,9 @@ async function startScan() {
         waiverIdx++;
         const leagueName = allPlayerData.flatMap(p => p.leagues).find(l => l.leagueId === lid)?.leagueName || lid;
         setStatus(`Scanning waivers ${waiverIdx} of ${dynastyLeagueIds.size}: <strong>${escHtml(leagueName)}</strong>`);
-
-        // DEBUG
-        const cached = rosterCache[lid];
-        console.log(`[DEBUG] league=${lid} rosterCache exists=${!!cached} size=${cached?.size} KW_4634=${cached?.has('4634')}`);
-
         const faData = await fetchFreeAgents(lid);
-        console.log(`[DEBUG] faData length=${faData?.length} includes_KW=${faData?.includes('4634')}`);
         if (faData) {
           waiverCache[lid] = findBestWaiverPickup(faData);
-          console.log(`[DEBUG] best pickup=${waiverCache[lid]?.name}`);
         } else {
           waiverCache[lid] = null;
         }
