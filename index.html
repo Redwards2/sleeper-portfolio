@@ -929,10 +929,23 @@ async function fetchPlayersDb() {
 }
 
 async function fetchFreeAgents(leagueId) {
-  // Returns object of { pid: { player_id, ... } } for all unrostered players
-  const r = await fetch(`${API}/league/${leagueId}/players/available`);
+  // Get all rosters in the league, collect every rostered/taxi/reserve player ID,
+  // then derive free agents by subtracting from the full player DB.
+  // This is more reliable than /players/available which can return unexpected formats.
+  const r = await fetch(`${API}/league/${leagueId}/rosters`);
   if (!r.ok) return null;
-  return r.json();
+  const rosters = await r.json();
+  if (!rosters) return null;
+
+  const rostered = new Set();
+  for (const roster of rosters) {
+    for (const pid of [...(roster.players || []), ...(roster.taxi || []), ...(roster.reserve || [])]) {
+      rostered.add(pid);
+    }
+  }
+
+  // Return all player IDs from the DB that aren't rostered
+  return Object.keys(playersDb).filter(pid => !rostered.has(pid));
 }
 
 // Given a league's free agent pid list, find the best KTC pickup
@@ -1062,9 +1075,9 @@ async function startScan() {
     document.getElementById('statsRow').classList.add('visible');
 
     // 7. Waiver scan — dynasty leagues only, players with KTC < 2000 OR no KTC value
-    //    Collect which dynasty league IDs contain at least one low/unknown-value player
+    //    Always runs so N/A players get suggestions too
     waiverCache = {};
-    if (ktcLoaded) {
+    {
       const dynastyLeagueIds = new Set();
       for (const p of allPlayerData) {
         if (p.ktcValue === null || p.ktcValue < 2000) {
@@ -1083,8 +1096,7 @@ async function startScan() {
         setStatus(`Scanning waivers ${waiverIdx} of ${dynastyLeagueIds.size}: <strong>${escHtml(leagueName)}</strong>`);
         const faData = await fetchFreeAgents(lid);
         if (faData) {
-          const faPids = Object.keys(faData);
-          waiverCache[lid] = findBestWaiverPickup(faPids);
+          waiverCache[lid] = findBestWaiverPickup(faData);
         } else {
           waiverCache[lid] = null;
         }
