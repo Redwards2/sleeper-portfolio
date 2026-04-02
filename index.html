@@ -819,12 +819,15 @@ function getKtcValue(playerName) {
   if (!ktcLoaded) return null;
   const key = normalizeName(playerName);
   if (ktcMap[key] !== undefined) return ktcMap[key];
-  // Fallback: try matching just last name if full name misses
+  // Fallback: require full first name + last name match (not just initial)
+  // to avoid collisions like "Jared Allen" matching "Josh Allen"
   const parts = key.split(' ');
   if (parts.length > 1) {
-    const lastName = parts[parts.length - 1];
+    const firstName = parts[0];
+    const lastName  = parts[parts.length - 1];
     for (const [k, v] of Object.entries(ktcMap)) {
-      if (k.endsWith(lastName) && k.startsWith(parts[0][0])) return v;
+      const kParts = k.split(' ');
+      if (kParts.length > 1 && kParts[0] === firstName && kParts[kParts.length - 1] === lastName) return v;
     }
   }
   return null;
@@ -959,9 +962,15 @@ function findBestWaiverPickup(faPids) {
     if (!p) continue;
     const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
     if (!name) continue;
-    const pos = (p.position || p.fantasy_positions?.[0] || '?').toUpperCase();
-    // Skip non-skill positions — only QB, RB, WR, TE
-    if (!['QB','RB','WR','TE'].includes(pos)) continue;
+
+    // Check both position and fantasy_positions — require at least one to be a skill position
+    const allPositions = [
+      p.position,
+      ...(p.fantasy_positions || [])
+    ].map(s => (s || '').toUpperCase());
+    const SKILL = ['QB','RB','WR','TE'];
+    if (!allPositions.some(pos => SKILL.includes(pos))) continue;
+    const pos = allPositions.find(pos => SKILL.includes(pos)) || '?';
 
     // Track best KTC-matched player
     if (ktcLoaded) {
