@@ -709,6 +709,15 @@
     </div>
   </div>
 
+  <div class="filter-section" style="margin-top:-16px;">
+    <div class="filter-label">Waiver Options</div>
+    <div class="filter-pills">
+      <div class="pill active" id="excludeRookiesPill" onclick="toggleExcludeRookies(this)">
+        <div class="check"></div>Exclude Pre-Draft Rookies
+      </div>
+    </div>
+  </div>
+
   <div class="status-bar" id="statusBar">
     <div class="spinner"></div>
     <div class="status-text" id="statusText">Initializing...</div>
@@ -768,6 +777,7 @@ let ktcLoaded = false;
 let currentSort = 'shares'; // 'shares' | 'ktc'
 let activeFilters = new Set(['dynasty-lineup','dynasty-bestball','redraft-lineup','redraft-bestball']);
 let waiverCache = {};   // leagueId -> { bestPid, bestName, bestPos, bestKtc } | null
+let excludeRookies = true; // toggle: exclude years_exp === 0 players from waiver suggestions
 
 // ─── Filter toggle ────────────────────────────────────────────────────────────
 function toggleFilter(pill) {
@@ -782,7 +792,46 @@ function toggleFilter(pill) {
   renderList();
 }
 
-// ─── KTC CSV loader ───────────────────────────────────────────────────────────
+// ─── Rookie exclusion toggle ──────────────────────────────────────────────────
+async function toggleExcludeRookies(pill) {
+  excludeRookies = !excludeRookies;
+  pill.classList.toggle('active', excludeRookies);
+
+  // If we have scan data, re-run the waiver pass with the new setting
+  if (allPlayerData.length) {
+    await rerunWaiverScan();
+  }
+}
+
+async function rerunWaiverScan() {
+  waiverCache = {};
+  const dynastyLeagueIds = new Set();
+  for (const p of allPlayerData) {
+    if (p.ktcValue === null || p.ktcValue < 2000) {
+      for (const l of p.leagues) {
+        if (l.leagueType === 'dynasty-lineup' || l.leagueType === 'dynasty-bestball') {
+          dynastyLeagueIds.add(l.leagueId);
+        }
+      }
+    }
+  }
+
+  showStatus(`Re-scanning waivers (rookies ${excludeRookies ? 'excluded' : 'included'})...`);
+  document.getElementById('scanBtn').disabled = true;
+
+  let idx = 0;
+  for (const lid of dynastyLeagueIds) {
+    idx++;
+    const leagueName = allPlayerData.flatMap(p => p.leagues).find(l => l.leagueId === lid)?.leagueName || lid;
+    setStatus(`Re-scanning waivers ${idx} of ${dynastyLeagueIds.size}: <strong>${escHtml(leagueName)}</strong>`);
+    const faData = await fetchFreeAgents(lid);
+    waiverCache[lid] = faData ? findBestWaiverPickup(faData) : null;
+  }
+
+  hideStatus();
+  document.getElementById('scanBtn').disabled = false;
+  renderList();
+}
 async function loadKtcData() {
   if (ktcLoaded) return;
   try {
@@ -963,7 +1012,8 @@ function findBestWaiverPickup(faPids) {
     const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
     if (!name) continue;
 
-    // Check both position and fantasy_positions — require at least one to be a skill position
+    // Exclude pre-draft rookies (years_exp === 0) if toggle is on
+    if (excludeRookies && (p.years_exp === 0 || p.years_exp === '0')) continue;
     const allPositions = [
       p.position,
       ...(p.fantasy_positions || [])
