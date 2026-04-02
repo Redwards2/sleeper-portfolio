@@ -543,7 +543,7 @@ footer a:hover { color:var(--amber); }
   <div class="filters-grid">
     <div class="filter-panel">
       <div class="filter-panel-label">League Types</div>
-      <div class="pill-group">
+      <div class="pill-group" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
         <div class="pill active" data-type="dynasty-lineup"   onclick="toggleFilter(this)"><div class="check"></div>Dynasty Lineup</div>
         <div class="pill active" data-type="dynasty-bestball" onclick="toggleFilter(this)"><div class="check"></div>Dynasty BB</div>
         <div class="pill active" data-type="redraft-lineup"   onclick="toggleFilter(this)"><div class="check"></div>Redraft Lineup</div>
@@ -557,7 +557,6 @@ footer a:hover { color:var(--amber); }
         <div class="pill active" data-pos="RB" onclick="togglePos(this)"><div class="check"></div>RB</div>
         <div class="pill active" data-pos="WR" onclick="togglePos(this)"><div class="check"></div>WR</div>
         <div class="pill active" data-pos="TE" onclick="togglePos(this)"><div class="check"></div>TE</div>
-        <div class="pill active" data-pos="OTHER" onclick="togglePos(this)"><div class="check"></div>Other</div>
       </div>
     </div>
     <div class="filter-panel">
@@ -627,7 +626,7 @@ let ktcMap = {};
 let ktcLoaded = false;
 let currentSort = 'shares';
 let activeFilters = new Set(['dynasty-lineup','dynasty-bestball','redraft-lineup','redraft-bestball']);
-let activePosFilters = new Set(['QB','RB','WR','TE','OTHER']);
+let activePosFilters = new Set(['QB','RB','WR','TE']);
 let waiverCache = {};
 let rosterCache = {};
 let excludeRookies = true;
@@ -776,7 +775,8 @@ function posClass(pos) {
 
 function posFilterKey(pos) {
   const skill = ['QB','RB','WR','TE'];
-  return skill.includes((pos||'').toUpperCase()) ? pos.toUpperCase() : 'OTHER';
+  const upper = (pos||'').toUpperCase();
+  return skill.includes(upper) ? upper : null;
 }
 
 function initials(name) {
@@ -968,7 +968,8 @@ function renderList() {
     .filter(p => {
       const matchSearch   = !searchVal || p.name.toLowerCase().includes(searchVal);
       const matchLowValue = !lowValueOnly || (p.ktcValue === null || p.ktcValue < 2000);
-      const matchPos      = activePosFilters.has(posFilterKey(p.position));
+      const posKey = posFilterKey(p.position);
+      const matchPos = posKey === null || activePosFilters.has(posKey);
       return matchSearch && matchLowValue && matchPos && p.visibleLeagues.length > 0;
     })
     .sort((a,b) => {
