@@ -67,37 +67,6 @@ Bijan Robinson,9982
 
 ---
 
-## How to Host on GitHub Pages
-
-### Step 1: Create a GitHub account
-If you don't have one: https://github.com/signup
-
-### Step 2: Create a new repository
-1. Go to https://github.com/new
-2. Name it something like `sleeper-portfolio`
-3. Set it to **Public**
-4. Click **Create repository**
-
-### Step 3: Upload both files
-1. On your new repo page, click **uploading an existing file**
-2. Drag and drop both `index.html` and `ktc_values.csv` into the upload area
-3. Scroll down and click **Commit changes**
-
-### Step 4: Enable GitHub Pages
-1. Go to your repo → **Settings** → **Pages** (left sidebar)
-2. Under **Source**, select **Deploy from a branch**
-3. Choose branch: `main`, folder: `/ (root)`
-4. Click **Save**
-
-### Step 5: Share!
-After ~60 seconds your tool will be live at:
-```
-https://YOUR-GITHUB-USERNAME.github.io/sleeper-portfolio/
-```
-
-Anyone can use it by entering their own Sleeper username — no account required.
-
----
 
 ## Keeping KTC Values Updated
 
