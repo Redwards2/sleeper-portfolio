@@ -1139,6 +1139,21 @@ async function startScan() {
     // 7. Waiver scan — dynasty leagues only, players with KTC < 2000 OR no KTC value
     //    Always runs so N/A players get suggestions too
     waiverCache = {};
+
+    // DEBUG: find Kenneth Walker's PID and check rosterCache
+    const kwEntry = Object.entries(playersDb).find(([pid, p]) =>
+      (p.first_name || '').toLowerCase() === 'kenneth' && (p.last_name || '').toLowerCase() === 'walker'
+    );
+    if (kwEntry) {
+      const [kwPid] = kwEntry;
+      console.log('[DEBUG] Kenneth Walker PID:', kwPid);
+      console.log('[DEBUG] rosterCache league IDs:', Object.keys(rosterCache));
+      for (const [lid, rSet] of Object.entries(rosterCache)) {
+        console.log(`[DEBUG] League ${lid} has KW rostered:`, rSet.has(kwPid), '| total rostered:', rSet.size);
+      }
+    } else {
+      console.log('[DEBUG] Kenneth Walker not found in playersDb');
+    }
     {
       const dynastyLeagueIds = new Set();
       for (const p of allPlayerData) {
