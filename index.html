@@ -608,6 +608,10 @@
       <div class="stat-num" id="statLeagues">0</div>
       <div class="stat-lbl">Leagues Scanned</div>
     </div>
+    <div class="stat-card" style="border-color: rgba(125,255,107,0.35);">
+      <div class="stat-num" id="statFiltered">0</div>
+      <div class="stat-lbl">Leagues in View</div>
+    </div>
     <div class="stat-card">
       <div class="stat-num" id="statPlayers">0</div>
       <div class="stat-lbl">Unique Players</div>
@@ -661,6 +665,29 @@ function toggleFilter(pill) {
     pill.classList.add('active');
   }
   renderList();
+}
+
+// ─── Update filtered stat cards ───────────────────────────────────────────────
+function updateFilteredStats(withFiltered) {
+  if (!allPlayerData.length) return;
+
+  // Count distinct leagues currently in view across all (unfiltered-by-search) players
+  const leaguesInView = new Set();
+  allPlayerData.forEach(p => {
+    p.leagues.forEach(l => {
+      if (activeFilters.has(l.leagueType)) leaguesInView.add(l.leagueId);
+    });
+  });
+
+  const maxShares = withFiltered.length ? withFiltered[0].visibleLeagues.length : 0;
+  const avgShares = withFiltered.length
+    ? (withFiltered.reduce((s, p) => s + p.visibleLeagues.length, 0) / withFiltered.length).toFixed(1)
+    : 0;
+
+  document.getElementById('statFiltered').textContent = leaguesInView.size;
+  document.getElementById('statMax').textContent      = maxShares;
+  document.getElementById('statAvg').textContent      = avgShares;
+  document.getElementById('statPlayers').textContent  = withFiltered.length;
 }
 
 // ─── Classify league type ─────────────────────────────────────────────────────
@@ -818,16 +845,8 @@ async function startScan() {
       };
     }).sort((a,b) => b.count - a.count);
 
-    // 6. Stats
-    const totalLeagues = leagues.length;
-    const uniquePlayers = allPlayerData.length;
-    const maxShares = allPlayerData[0]?.count || 0;
-    const avgShares = uniquePlayers ? (allPlayerData.reduce((s,p)=>s+p.count,0)/uniquePlayers).toFixed(1) : 0;
-
-    document.getElementById('statLeagues').textContent = totalLeagues;
-    document.getElementById('statPlayers').textContent = uniquePlayers;
-    document.getElementById('statMax').textContent     = maxShares;
-    document.getElementById('statAvg').textContent     = avgShares;
+    // 6. Stats — static totals set here; filtered stats update live via renderList()
+    document.getElementById('statLeagues').textContent = leagues.length;
     document.getElementById('statsRow').classList.add('visible');
 
     hideStatus();
@@ -857,28 +876,36 @@ function renderList() {
     return;
   }
 
-  // Filter by league type and search
-  const filtered = allPlayerData.filter(p => {
-    const matchSearch = !searchVal || p.name.toLowerCase().includes(searchVal);
-    const matchFilter = p.leagues.some(l => activeFilters.has(l.leagueType));
-    return matchSearch && matchFilter;
-  });
+  // Build list with filtered league counts attached, then sort by filtered count desc
+  const withFiltered = allPlayerData
+    .map(p => ({
+      ...p,
+      visibleLeagues: p.leagues.filter(l => activeFilters.has(l.leagueType))
+    }))
+    .filter(p => {
+      const matchSearch = !searchVal || p.name.toLowerCase().includes(searchVal);
+      return matchSearch && p.visibleLeagues.length > 0;
+    })
+    .sort((a, b) => b.visibleLeagues.length - a.visibleLeagues.length);
 
-  // For each player, filter leagues by active types
-  const maxCount = filtered.length ? filtered[0].count : 1;
+  // maxCount based on filtered results for accurate share bars
+  const maxCount = withFiltered.length ? withFiltered[0].visibleLeagues.length : 1;
+
+  // Update the live filtered stats
+  updateFilteredStats(withFiltered);
 
   controlsEl.classList.add('visible');
-  countEl.textContent = `${filtered.length} player${filtered.length !== 1 ? 's' : ''}`;
+  countEl.textContent = `${withFiltered.length} player${withFiltered.length !== 1 ? 's' : ''}`;
 
-  if (!filtered.length) {
+  if (!withFiltered.length) {
     emptyEl.classList.add('visible');
     return;
   }
 
   emptyEl.classList.remove('visible');
 
-  filtered.forEach((p, idx) => {
-    const visibleLeagues = p.leagues.filter(l => activeFilters.has(l.leagueType));
+  withFiltered.forEach((p, idx) => {
+    const visibleLeagues = p.visibleLeagues;
     if (!visibleLeagues.length) return;
 
     const card = document.createElement('div');
