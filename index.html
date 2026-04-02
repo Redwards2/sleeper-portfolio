@@ -960,8 +960,8 @@ function findBestWaiverPickup(faPids) {
     const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
     if (!name) continue;
     const pos = (p.position || p.fantasy_positions?.[0] || '?').toUpperCase();
-    // Skip non-skill positions (kickers, def, IDPs, coaches etc.)
-    if (['K','DEF','FB','P'].includes(pos)) continue;
+    // Skip non-skill positions — only QB, RB, WR, TE
+    if (!['QB','RB','WR','TE'].includes(pos)) continue;
 
     // Track best KTC-matched player
     if (ktcLoaded) {
@@ -1216,7 +1216,7 @@ function renderList() {
               const wLabel = cachedEntry.ktc !== null ? cachedEntry.ktc.toLocaleString() : 'N/A';
               waiverHtml = `<div class="waiver-row">
                 <span class="waiver-arrow">↳</span>
-                <span class="waiver-label">Best Available</span>
+                <span class="waiver-label">Best Available on Waivers</span>
                 <span class="waiver-pos">${escHtml(cachedEntry.pos)}</span>
                 <span class="waiver-name">${escHtml(cachedEntry.name)}</span>
                 <span class="ktc-badge waiver-ktc ${wClass}">${wLabel}</span>
