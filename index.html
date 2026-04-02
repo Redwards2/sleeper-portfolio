@@ -549,6 +549,25 @@
 
   .waiver-row:last-child { border-bottom: none; }
 
+  .waiver-row-link {
+    text-decoration: none;
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+
+  .waiver-row-link:hover {
+    background: var(--card-hover);
+  }
+
+  .waiver-row-link:hover .waiver-name {
+    color: var(--accent);
+  }
+
+  .waiver-row-link:hover .league-link-icon {
+    opacity: 1 !important;
+    color: var(--accent);
+  }
+
   .waiver-arrow {
     color: var(--muted);
     font-size: 11px;
@@ -1298,13 +1317,15 @@ function renderList() {
             if (cachedEntry) {
               const wClass = cachedEntry.ktc !== null ? ktcBadgeClass(cachedEntry.ktc) : 'ktc-none';
               const wLabel = cachedEntry.ktc !== null ? cachedEntry.ktc.toLocaleString() : 'N/A';
-              waiverHtml = `<div class="waiver-row">
+              const addUrl = `https://sleeper.com/leagues/${l.leagueId}/add-drop/${cachedEntry.pid}`;
+              waiverHtml = `<a class="waiver-row waiver-row-link" href="${escHtml(addUrl)}" target="_blank" rel="noopener" title="Add ${escHtml(cachedEntry.name)} in ${escHtml(l.leagueName)}">
                 <span class="waiver-arrow">↳</span>
                 <span class="waiver-label">Best Available on Waivers</span>
                 <span class="waiver-pos">${escHtml(cachedEntry.pos)}</span>
                 <span class="waiver-name">${escHtml(cachedEntry.name)}</span>
                 <span class="ktc-badge waiver-ktc ${wClass}">${wLabel}</span>
-              </div>`;
+                <svg class="league-link-icon" style="opacity:0.5;" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>`;
             } else if (cachedEntry === null) {
               waiverHtml = `<div class="waiver-row"><span class="waiver-arrow">↳</span><span class="waiver-label">No pickups found</span></div>`;
             }
