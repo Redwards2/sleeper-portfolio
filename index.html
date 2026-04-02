@@ -514,6 +514,56 @@
 
   .league-item:hover .league-link-icon { opacity: 1; color: var(--accent); }
 
+  /* Waiver suggestion row */
+  .waiver-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px 10px 76px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .waiver-row:last-child { border-bottom: none; }
+
+  .waiver-arrow {
+    color: var(--muted);
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  .waiver-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .waiver-name {
+    color: var(--text);
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+  }
+
+  .waiver-pos {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .waiver-ktc {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
   /* Empty state */
   .empty-state {
     display: none;
@@ -708,6 +758,7 @@ let ktcMap = {};        // normalized name -> KTC value
 let ktcLoaded = false;
 let currentSort = 'shares'; // 'shares' | 'ktc'
 let activeFilters = new Set(['dynasty-lineup','dynasty-bestball','redraft-lineup','redraft-bestball']);
+let waiverCache = {};   // leagueId -> { bestPid, bestName, bestPos, bestKtc } | null
 
 // ─── Filter toggle ────────────────────────────────────────────────────────────
 function toggleFilter(pill) {
@@ -890,6 +941,33 @@ async function fetchPlayersDb() {
   return r.json();
 }
 
+async function fetchFreeAgents(leagueId) {
+  // Returns object of { pid: { player_id, ... } } for all unrostered players
+  const r = await fetch(`${API}/league/${leagueId}/players/available`);
+  if (!r.ok) return null;
+  return r.json();
+}
+
+// Given a league's free agent pid list, find the best KTC pickup
+function findBestWaiverPickup(faPids) {
+  if (!ktcLoaded || !faPids || !faPids.length) return null;
+  let bestPid = null, bestName = null, bestPos = '?', bestKtc = -1;
+  for (const pid of faPids) {
+    const p = playersDb[pid];
+    if (!p) continue;
+    const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
+    if (!name) continue;
+    const ktc = getKtcValue(name);
+    if (ktc !== null && ktc > bestKtc) {
+      bestKtc  = ktc;
+      bestPid  = pid;
+      bestName = name;
+      bestPos  = (p.position || p.fantasy_positions?.[0] || '?').toUpperCase();
+    }
+  }
+  return bestKtc > 0 ? { pid: bestPid, name: bestName, pos: bestPos, ktc: bestKtc } : null;
+}
+
 // ─── Main scan ────────────────────────────────────────────────────────────────
 async function startScan() {
   const username = document.getElementById('usernameInput').value.trim();
@@ -985,6 +1063,36 @@ async function startScan() {
     document.getElementById('statLeagues').textContent = leagues.length;
     document.getElementById('statsRow').classList.add('visible');
 
+    // 7. Waiver scan — dynasty leagues only, players with KTC < 2000
+    //    Collect which dynasty league IDs contain at least one low-value player
+    waiverCache = {};
+    if (ktcLoaded) {
+      const dynastyLeagueIds = new Set();
+      for (const p of allPlayerData) {
+        if ((p.ktcValue ?? 9999) < 2000) {
+          for (const l of p.leagues) {
+            if (l.leagueType === 'dynasty-lineup' || l.leagueType === 'dynasty-bestball') {
+              dynastyLeagueIds.add(l.leagueId);
+            }
+          }
+        }
+      }
+
+      let waiverIdx = 0;
+      for (const lid of dynastyLeagueIds) {
+        waiverIdx++;
+        const leagueName = allPlayerData.flatMap(p => p.leagues).find(l => l.leagueId === lid)?.leagueName || lid;
+        setStatus(`Scanning waivers ${waiverIdx} of ${dynastyLeagueIds.size}: <strong>${escHtml(leagueName)}</strong>`);
+        const faData = await fetchFreeAgents(lid);
+        if (faData) {
+          const faPids = Object.keys(faData);
+          waiverCache[lid] = findBestWaiverPickup(faPids);
+        } else {
+          waiverCache[lid] = null;
+        }
+      }
+    }
+
     hideStatus();
     renderList();
 
@@ -1077,13 +1185,28 @@ function renderList() {
       <div class="league-list">
         ${visibleLeagues.map(l => {
           const meta = TYPE_META[l.leagueType] || TYPE_META['redraft-lineup'];
+          const isDynasty = l.leagueType === 'dynasty-lineup' || l.leagueType === 'dynasty-bestball';
+          const isLowValue = (p.ktcValue ?? 9999) < 2000;
+          const waiver = isDynasty && isLowValue && waiverCache[l.leagueId];
+          const waiverHtml = waiver ? (() => {
+            const wClass = ktcBadgeClass(waiver.ktc);
+            return `<div class="waiver-row">
+              <span class="waiver-arrow">↳</span>
+              <span class="waiver-label">Best Available</span>
+              <span class="waiver-pos">${escHtml(waiver.pos)}</span>
+              <span class="waiver-name">${escHtml(waiver.name)}</span>
+              <span class="ktc-badge waiver-ktc ${wClass}">${waiver.ktc.toLocaleString()}</span>
+            </div>`;
+          })() : (isDynasty && isLowValue && waiverCache[l.leagueId] === null
+            ? `<div class="waiver-row"><span class="waiver-arrow">↳</span><span class="waiver-label">No pickups found</span></div>`
+            : '');
           return `
           <a class="league-item" href="${escHtml(l.leagueUrl)}" target="_blank" rel="noopener" title="Open ${escHtml(l.leagueName)} on Sleeper">
             <div class="league-dot ${posDotClass(p.position)}" style="background:${meta.dot}"></div>
             <span class="league-type-tag ${meta.tag}">${meta.label} ${meta.sub}</span>
             <span class="league-name">${escHtml(l.leagueName)}</span>
             <svg class="league-link-icon" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          </a>`;
+          </a>${waiverHtml}`;
         }).join('')}
       </div>`;
 
@@ -1120,6 +1243,7 @@ function clearResults() {
   document.getElementById('emptyState').classList.remove('visible');
   document.getElementById('errorMsg').classList.remove('visible');
   allPlayerData = [];
+  waiverCache = {};
 }
 
 function showStatus(html) {
