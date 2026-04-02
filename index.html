@@ -867,19 +867,8 @@ function normalizeName(name) {
 function getKtcValue(playerName) {
   if (!ktcLoaded) return null;
   const key = normalizeName(playerName);
-  if (ktcMap[key] !== undefined) return ktcMap[key];
-  // Fallback: require full first name + last name match (not just initial)
-  // to avoid collisions like "Jared Allen" matching "Josh Allen"
-  const parts = key.split(' ');
-  if (parts.length > 1) {
-    const firstName = parts[0];
-    const lastName  = parts[parts.length - 1];
-    for (const [k, v] of Object.entries(ktcMap)) {
-      const kParts = k.split(' ');
-      if (kParts.length > 1 && kParts[0] === firstName && kParts[kParts.length - 1] === lastName) return v;
-    }
-  }
-  return null;
+  // Exact normalized match only — no fuzzy fallback to avoid wrong player collisions
+  return ktcMap[key] !== undefined ? ktcMap[key] : null;
 }
 
 function ktcBadgeClass(val) {
@@ -1014,13 +1003,15 @@ function findBestWaiverPickup(faPids) {
 
     // Exclude pre-draft rookies (years_exp === 0) if toggle is on
     if (excludeRookies && (p.years_exp === 0 || p.years_exp === '0')) continue;
-    const allPositions = [
-      p.position,
-      ...(p.fantasy_positions || [])
-    ].map(s => (s || '').toUpperCase());
+
+    // Use p.position as primary — fantasy_positions can include flex tags (e.g. RB listed as WR)
     const SKILL = ['QB','RB','WR','TE'];
-    if (!allPositions.some(pos => SKILL.includes(pos))) continue;
-    const pos = allPositions.find(pos => SKILL.includes(pos)) || '?';
+    const primaryPos = (p.position || '').toUpperCase();
+    const fantasyPositions = (p.fantasy_positions || []).map(s => (s || '').toUpperCase());
+    const pos = SKILL.includes(primaryPos)
+      ? primaryPos
+      : fantasyPositions.find(fp => SKILL.includes(fp));
+    if (!pos) continue; // not a skill position player
 
     // Track best KTC-matched player
     if (ktcLoaded) {
