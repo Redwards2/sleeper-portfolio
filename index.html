@@ -528,6 +528,48 @@
 
   .empty-state p { font-size: 14px; }
 
+  /* KTC value badge */
+  .ktc-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    letter-spacing: 0.3px;
+  }
+  .ktc-elite  { background: rgba(125,255,107,0.15); color: #7dff6b; border: 1px solid rgba(125,255,107,0.25); }
+  .ktc-high   { background: rgba(77,170,255,0.15);  color: #4daaff; border: 1px solid rgba(77,170,255,0.25); }
+  .ktc-mid    { background: rgba(255,185,107,0.15); color: #ffb96b; border: 1px solid rgba(255,185,107,0.25); }
+  .ktc-low    { background: rgba(255,107,107,0.12); color: #ff8080; border: 1px solid rgba(255,107,107,0.2); }
+  .ktc-none   { background: rgba(90,96,112,0.15);   color: var(--muted); border: 1px solid transparent; }
+
+  /* Sort toggle */
+  .sort-toggle {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .sort-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .sort-btn:hover { color: var(--text); }
+  .sort-btn.active { background: var(--surface2); color: var(--accent); }
+
   /* Position dots */
   .pos-qb  { background: #ff6b6b; }
   .pos-rb  { background: var(--accent); }
@@ -624,13 +666,23 @@
       <div class="stat-num" id="statAvg">0</div>
       <div class="stat-lbl">Avg Shares</div>
     </div>
+    <div class="stat-card" id="statKtcCard" style="display:none;">
+      <div class="stat-num" id="statKtcTotal" style="font-size:26px;">—</div>
+      <div class="stat-lbl">Total KTC Value</div>
+    </div>
   </div>
 
   <div class="results-controls" id="resultsControls">
     <div class="results-count" id="resultsCount"></div>
-    <div class="player-search-wrap">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="playerSearch" placeholder="Filter players..." oninput="filterPlayers()" />
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+      <div class="sort-toggle">
+        <button class="sort-btn active" id="sortShares" onclick="setSort('shares')">Shares</button>
+        <button class="sort-btn" id="sortKtc" onclick="setSort('ktc')">KTC Value</button>
+      </div>
+      <div class="player-search-wrap">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="playerSearch" placeholder="Filter players..." oninput="filterPlayers()" />
+      </div>
     </div>
   </div>
 
@@ -652,6 +704,9 @@
 // ─── State ────────────────────────────────────────────────────────────────────
 let allPlayerData = [];
 let playersDb = {};
+let ktcMap = {};        // normalized name -> KTC value
+let ktcLoaded = false;
+let currentSort = 'shares'; // 'shares' | 'ktc'
 let activeFilters = new Set(['dynasty-lineup','dynasty-bestball','redraft-lineup','redraft-bestball']);
 
 // ─── Filter toggle ────────────────────────────────────────────────────────────
@@ -664,6 +719,75 @@ function toggleFilter(pill) {
     activeFilters.add(type);
     pill.classList.add('active');
   }
+  renderList();
+}
+
+// ─── KTC CSV loader ───────────────────────────────────────────────────────────
+async function loadKtcData() {
+  if (ktcLoaded) return;
+  try {
+    const r = await fetch('ktc_values.csv');
+    if (!r.ok) return; // silently skip if file not present
+    const text = await r.text();
+    const lines = text.trim().split('\n').slice(1); // skip header
+    for (const line of lines) {
+      const comma = line.indexOf(',');
+      if (comma === -1) continue;
+      const name = line.slice(0, comma).trim();
+      const val  = parseInt(line.slice(comma + 1).trim(), 10);
+      if (name && !isNaN(val)) {
+        ktcMap[normalizeName(name)] = val;
+      }
+    }
+    ktcLoaded = true;
+  } catch(e) {
+    // KTC data unavailable — app works fine without it
+  }
+}
+
+// Normalize name for fuzzy matching: lowercase, strip punctuation/suffixes
+function normalizeName(name) {
+  return name
+    .toLowerCase()
+    .replace(/\s+(jr\.?|sr\.?|ii|iii|iv)$/i, '') // strip suffix
+    .replace(/['.'\-]/g, '')                        // strip apostrophes, periods, hyphens
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getKtcValue(playerName) {
+  if (!ktcLoaded) return null;
+  const key = normalizeName(playerName);
+  if (ktcMap[key] !== undefined) return ktcMap[key];
+  // Fallback: try matching just last name if full name misses
+  const parts = key.split(' ');
+  if (parts.length > 1) {
+    const lastName = parts[parts.length - 1];
+    for (const [k, v] of Object.entries(ktcMap)) {
+      if (k.endsWith(lastName) && k.startsWith(parts[0][0])) return v;
+    }
+  }
+  return null;
+}
+
+function ktcBadgeClass(val) {
+  if (val === null) return 'ktc-none';
+  if (val >= 7000)  return 'ktc-elite';
+  if (val >= 4000)  return 'ktc-high';
+  if (val >= 2000)  return 'ktc-mid';
+  return 'ktc-low';
+}
+
+function ktcBadgeLabel(val) {
+  if (val === null) return 'N/A';
+  return val.toLocaleString();
+}
+
+// ─── Sort ─────────────────────────────────────────────────────────────────────
+function setSort(mode) {
+  currentSort = mode;
+  document.getElementById('sortShares').classList.toggle('active', mode === 'shares');
+  document.getElementById('sortKtc').classList.toggle('active', mode === 'ktc');
   renderList();
 }
 
@@ -688,6 +812,13 @@ function updateFilteredStats(withFiltered) {
   document.getElementById('statMax').textContent      = maxShares;
   document.getElementById('statAvg').textContent      = avgShares;
   document.getElementById('statPlayers').textContent  = withFiltered.length;
+
+  // KTC total — sum of each unique player's KTC value (once, regardless of share count)
+  if (ktcLoaded) {
+    const total = withFiltered.reduce((sum, p) => sum + (p.ktcValue ?? 0), 0);
+    document.getElementById('statKtcTotal').textContent = total.toLocaleString();
+    document.getElementById('statKtcCard').style.display = '';
+  }
 }
 
 // ─── Classify league type ─────────────────────────────────────────────────────
@@ -780,6 +911,9 @@ async function startScan() {
       playersDb = await fetchPlayersDb();
     }
 
+    // 2b. Load KTC data (non-blocking — silently skipped if CSV not present)
+    await loadKtcData();
+
     // 3. Get leagues for 2026
     setStatus('Fetching your leagues...');
     const leagues = await fetchLeagues(userId, '2026');
@@ -835,13 +969,15 @@ async function startScan() {
     // 5. Build sorted array
     allPlayerData = Object.entries(playerMap).map(([pid, data]) => {
       const p = playersDb[pid] || {};
+      const name = [p.first_name, p.last_name].filter(Boolean).join(' ') || `Player #${pid}`;
       return {
         pid,
-        name:     [p.first_name, p.last_name].filter(Boolean).join(' ') || `Player #${pid}`,
+        name,
         position: (p.position || p.fantasy_positions?.[0] || '?').toUpperCase(),
         team:     p.team || 'FA',
         count:    data.leagues.length,
-        leagues:  data.leagues
+        leagues:  data.leagues,
+        ktcValue: getKtcValue(name)
       };
     }).sort((a,b) => b.count - a.count);
 
@@ -876,7 +1012,7 @@ function renderList() {
     return;
   }
 
-  // Build list with filtered league counts attached, then sort by filtered count desc
+  // Build list with filtered league counts attached, then sort
   const withFiltered = allPlayerData
     .map(p => ({
       ...p,
@@ -886,7 +1022,14 @@ function renderList() {
       const matchSearch = !searchVal || p.name.toLowerCase().includes(searchVal);
       return matchSearch && p.visibleLeagues.length > 0;
     })
-    .sort((a, b) => b.visibleLeagues.length - a.visibleLeagues.length);
+    .sort((a, b) => {
+      if (currentSort === 'ktc') {
+        const av = a.ktcValue ?? -1;
+        const bv = b.ktcValue ?? -1;
+        return bv - av;
+      }
+      return b.visibleLeagues.length - a.visibleLeagues.length;
+    });
 
   // maxCount based on filtered results for accurate share bars
   const maxCount = withFiltered.length ? withFiltered[0].visibleLeagues.length : 1;
@@ -910,6 +1053,8 @@ function renderList() {
 
     const card = document.createElement('div');
     card.className = 'player-card';
+    const ktcClass = ktcBadgeClass(p.ktcValue);
+    const ktcLabel = ktcBadgeLabel(p.ktcValue);
     card.innerHTML = `
       <div class="player-header" onclick="toggleCard(this)">
         <span class="rank-badge">#${idx+1}</span>
@@ -921,6 +1066,7 @@ function renderList() {
           <div class="player-meta">${p.position} · ${p.team}</div>
         </div>
         <div class="share-info">
+          ${ktcLoaded ? `<span class="ktc-badge ${ktcClass}" title="KeepTradeCut value">${ktcLabel}</span>` : ''}
           <div class="share-bar-wrap">
             <div class="share-bar-fill" style="width:${(visibleLeagues.length/maxCount*100).toFixed(0)}%"></div>
           </div>
