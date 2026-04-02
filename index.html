@@ -1155,9 +1155,16 @@ async function startScan() {
         waiverIdx++;
         const leagueName = allPlayerData.flatMap(p => p.leagues).find(l => l.leagueId === lid)?.leagueName || lid;
         setStatus(`Scanning waivers ${waiverIdx} of ${dynastyLeagueIds.size}: <strong>${escHtml(leagueName)}</strong>`);
+
+        // DEBUG
+        const cached = rosterCache[lid];
+        console.log(`[DEBUG] league=${lid} rosterCache exists=${!!cached} size=${cached?.size} KW_4634=${cached?.has('4634')}`);
+
         const faData = await fetchFreeAgents(lid);
+        console.log(`[DEBUG] faData length=${faData?.length} includes_KW=${faData?.includes('4634')}`);
         if (faData) {
           waiverCache[lid] = findBestWaiverPickup(faData);
+          console.log(`[DEBUG] best pickup=${waiverCache[lid]?.name}`);
         } else {
           waiverCache[lid] = null;
         }
