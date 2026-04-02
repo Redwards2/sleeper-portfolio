@@ -604,6 +604,21 @@
     flex-shrink: 0;
   }
 
+  .waiver-locked {
+    opacity: 0.55;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .waiver-locked-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--warn);
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
   /* Empty state */
   .empty-state {
     display: none;
@@ -734,6 +749,9 @@
       <div class="pill active" id="excludeRookiesPill" onclick="toggleExcludeRookies(this)">
         <div class="check"></div>Exclude Pre-Draft Rookies
       </div>
+      <div class="pill" id="lowValueOnlyPill" onclick="toggleLowValueOnly(this)">
+        <div class="check"></div>Show Low Value Only (&lt;2,000 / N/A)
+      </div>
     </div>
   </div>
 
@@ -798,6 +816,14 @@ let activeFilters = new Set(['dynasty-lineup','dynasty-bestball','redraft-lineup
 let waiverCache = {};   // leagueId -> { bestPid, bestName, bestPos, bestKtc } | null
 let rosterCache = {};  // leagueId -> Set of all rostered player IDs (populated during main scan)
 let excludeRookies = true;
+let lowValueOnly = false;
+
+// ─── Low value only toggle ────────────────────────────────────────────────────
+function toggleLowValueOnly(pill) {
+  lowValueOnly = !lowValueOnly;
+  pill.classList.toggle('active', lowValueOnly);
+  renderList();
+}
 
 // ─── Filter toggle ────────────────────────────────────────────────────────────
 function toggleFilter(pill) {
@@ -1130,8 +1156,14 @@ async function startScan() {
       const myRoster = rosters.find(r => r.owner_id === userId);
       if (!myRoster) continue;
 
-      const leagueType = classifyLeague(league);
-      const leagueUrl  = `https://sleeper.com/leagues/${league.league_id}`;
+      const leagueType   = classifyLeague(league);
+      const leagueUrl    = `https://sleeper.com/leagues/${league.league_id}`;
+      // Waivers are locked if the league setting says so, or if status is pre_draft/complete
+      const waiverLocked = !!(
+        league.settings?.waiver_lock === 1 ||
+        league.status === 'pre_draft' ||
+        league.status === 'complete'
+      );
 
       const playerIds = [
         ...(myRoster.players || []),
@@ -1153,7 +1185,8 @@ async function startScan() {
           leagueId:   league.league_id,
           leagueName: league.name,
           leagueType,
-          leagueUrl
+          leagueUrl,
+          waiverLocked
         });
       }
     }
@@ -1241,7 +1274,8 @@ function renderList() {
     }))
     .filter(p => {
       const matchSearch = !searchVal || p.name.toLowerCase().includes(searchVal);
-      return matchSearch && p.visibleLeagues.length > 0;
+      const matchLowValue = !lowValueOnly || (p.ktcValue === null || p.ktcValue < 2000);
+      return matchSearch && matchLowValue && p.visibleLeagues.length > 0;
     })
     .sort((a, b) => {
       if (currentSort === 'ktc') {
@@ -1318,13 +1352,17 @@ function renderList() {
               const wClass = cachedEntry.ktc !== null ? ktcBadgeClass(cachedEntry.ktc) : 'ktc-none';
               const wLabel = cachedEntry.ktc !== null ? cachedEntry.ktc.toLocaleString() : 'N/A';
               const playersUrl = `https://sleeper.com/leagues/${l.leagueId}/players`;
-              waiverHtml = `<a class="waiver-row waiver-row-link" href="${escHtml(playersUrl)}" target="_blank" rel="noopener" title="Open players page — name copied to clipboard" onclick="copyToClipboard('${escHtml(cachedEntry.name).replace(/'/g,"\\'")}')">
+              const lockedBadge = l.waiverLocked
+                ? `<span class="waiver-locked-badge">🔒 Waivers Locked</span>`
+                : '';
+              waiverHtml = `<a class="waiver-row waiver-row-link${l.waiverLocked ? ' waiver-locked' : ''}" href="${escHtml(playersUrl)}" target="_blank" rel="noopener" title="${l.waiverLocked ? 'Waivers locked in this league' : 'Open players page — name copied to clipboard'}" ${l.waiverLocked ? '' : `onclick="copyToClipboard('${escHtml(cachedEntry.name).replace(/'/g,"\\'")}')"`}>
                 <span class="waiver-arrow">↳</span>
                 <span class="waiver-label">Best Available on Waivers</span>
                 <span class="waiver-pos">${escHtml(cachedEntry.pos)}</span>
                 <span class="waiver-name">${escHtml(cachedEntry.name)}</span>
                 <span class="ktc-badge waiver-ktc ${wClass}">${wLabel}</span>
-                <svg class="league-link-icon" style="opacity:0.5;" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                ${lockedBadge}
+                ${!l.waiverLocked ? `<svg class="league-link-icon" style="opacity:0.5;" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>` : ''}
               </a>`;
             } else if (cachedEntry === null) {
               waiverHtml = `<div class="waiver-row"><span class="waiver-arrow">↳</span><span class="waiver-label">No pickups found</span></div>`;
