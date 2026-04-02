@@ -777,7 +777,8 @@ let ktcLoaded = false;
 let currentSort = 'shares'; // 'shares' | 'ktc'
 let activeFilters = new Set(['dynasty-lineup','dynasty-bestball','redraft-lineup','redraft-bestball']);
 let waiverCache = {};   // leagueId -> { bestPid, bestName, bestPos, bestKtc } | null
-let excludeRookies = true; // toggle: exclude years_exp === 0 players from waiver suggestions
+let rosterCache = {};  // leagueId -> Set of all rostered player IDs (populated during main scan)
+let excludeRookies = true;
 
 // ─── Filter toggle ────────────────────────────────────────────────────────────
 function toggleFilter(pill) {
@@ -970,22 +971,24 @@ async function fetchPlayersDb() {
 }
 
 async function fetchFreeAgents(leagueId) {
-  // Get all rosters in the league, collect every rostered/taxi/reserve player ID,
-  // then derive free agents by subtracting from the full player DB.
-  // This is more reliable than /players/available which can return unexpected formats.
-  const r = await fetch(`${API}/league/${leagueId}/rosters`);
-  if (!r.ok) return null;
-  const rosters = await r.json();
-  if (!rosters) return null;
+  // Use roster data already fetched during the main scan — no second API call needed.
+  // If for some reason the league wasn't cached, fall back to a fresh fetch.
+  let rostered = rosterCache[leagueId];
 
-  const rostered = new Set();
-  for (const roster of rosters) {
-    for (const pid of [...(roster.players || []), ...(roster.taxi || []), ...(roster.reserve || [])]) {
-      rostered.add(pid);
+  if (!rostered) {
+    const r = await fetch(`${API}/league/${leagueId}/rosters`);
+    if (!r.ok) return null;
+    const freshRosters = await r.json();
+    if (!freshRosters) return null;
+    rostered = new Set();
+    for (const roster of freshRosters) {
+      for (const pid of [...(roster.players || []), ...(roster.taxi || []), ...(roster.reserve || [])]) {
+        rostered.add(pid);
+      }
     }
   }
 
-  // Return all player IDs from the DB that aren't rostered
+  // Return all player IDs from the DB that aren't rostered in this league
   return Object.keys(playersDb).filter(pid => !rostered.has(pid));
 }
 
@@ -1072,6 +1075,15 @@ async function startScan() {
 
       const rosters = await fetchRosters(league.league_id);
       if (!rosters) continue;
+
+      // Cache every rostered player in this league for accurate free agent detection later
+      const leagueRostered = new Set();
+      for (const roster of rosters) {
+        for (const pid of [...(roster.players || []), ...(roster.taxi || []), ...(roster.reserve || [])]) {
+          leagueRostered.add(pid);
+        }
+      }
+      rosterCache[league.league_id] = leagueRostered;
 
       // Find the roster owned by this user
       const myRoster = rosters.find(r => r.owner_id === userId);
@@ -1323,6 +1335,7 @@ function clearResults() {
   document.getElementById('errorMsg').classList.remove('visible');
   allPlayerData = [];
   waiverCache = {};
+  rosterCache = {};
 }
 
 function showStatus(html) {
