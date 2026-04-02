@@ -1158,12 +1158,10 @@ async function startScan() {
 
       const leagueType   = classifyLeague(league);
       const leagueUrl    = `https://sleeper.com/leagues/${league.league_id}`;
-      // Waivers are locked if the league setting says so, or if status is pre_draft/complete
-      const waiverLocked = !!(
-        league.settings?.waiver_lock === 1 ||
-        league.status === 'pre_draft' ||
-        league.status === 'complete'
-      );
+      // Waivers are locked only if the league explicitly has waiver_lock set
+      const waiverLocked = league.settings?.waiver_lock === 1;
+      // DEBUG: log status and waiver settings so we can identify the right field
+      if (i < 5) console.log(`[DEBUG] "${league.name}" status=${league.status} waiver_lock=${league.settings?.waiver_lock} waiver_type=${league.settings?.waiver_type} waiver_clear_days=${league.settings?.waiver_clear_days}`);
 
       const playerIds = [
         ...(myRoster.players || []),
