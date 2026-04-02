@@ -439,6 +439,27 @@
     line-height: 1;
     min-width: 28px;
     text-align: right;
+    white-space: nowrap;
+  }
+
+  .share-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: 4px;
+    font-weight: 400;
+    vertical-align: middle;
+  }
+
+  /* League item wrapper — keeps waiver row visually grouped with its league */
+  .league-item-wrap {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .league-item-wrap:last-child { border-bottom: none; }
+
+  .league-item-wrap .league-item {
+    border-bottom: none;
   }
 
   .expand-icon {
@@ -708,18 +729,6 @@
       <div class="stat-num" id="statPlayers">0</div>
       <div class="stat-lbl">Unique Players</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-num" id="statMax">0</div>
-      <div class="stat-lbl">Max Exposure</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num" id="statAvg">0</div>
-      <div class="stat-lbl">Avg Shares</div>
-    </div>
-    <div class="stat-card" id="statKtcCard" style="display:none;">
-      <div class="stat-num" id="statKtcTotal" style="font-size:26px;">—</div>
-      <div class="stat-lbl">Total KTC Value</div>
-    </div>
   </div>
 
   <div class="results-controls" id="resultsControls">
@@ -843,33 +852,11 @@ function setSort(mode) {
 }
 
 // ─── Update filtered stat cards ───────────────────────────────────────────────
-function updateFilteredStats(withFiltered) {
+function updateFilteredStats(withFiltered, leagueCount) {
   if (!allPlayerData.length) return;
 
-  // Count distinct leagues currently in view across all (unfiltered-by-search) players
-  const leaguesInView = new Set();
-  allPlayerData.forEach(p => {
-    p.leagues.forEach(l => {
-      if (activeFilters.has(l.leagueType)) leaguesInView.add(l.leagueId);
-    });
-  });
-
-  const maxShares = withFiltered.length ? withFiltered[0].visibleLeagues.length : 0;
-  const avgShares = withFiltered.length
-    ? (withFiltered.reduce((s, p) => s + p.visibleLeagues.length, 0) / withFiltered.length).toFixed(1)
-    : 0;
-
-  document.getElementById('statFiltered').textContent = leaguesInView.size;
-  document.getElementById('statMax').textContent      = maxShares;
-  document.getElementById('statAvg').textContent      = avgShares;
+  document.getElementById('statFiltered').textContent = leagueCount ?? 0;
   document.getElementById('statPlayers').textContent  = withFiltered.length;
-
-  // KTC total — sum of each unique player's KTC value (once, regardless of share count)
-  if (ktcLoaded) {
-    const total = withFiltered.reduce((sum, p) => sum + (p.ktcValue ?? 0), 0);
-    document.getElementById('statKtcTotal').textContent = total.toLocaleString();
-    document.getElementById('statKtcCard').style.display = '';
-  }
 }
 
 // ─── Classify league type ─────────────────────────────────────────────────────
@@ -1142,8 +1129,15 @@ function renderList() {
   // maxCount based on filtered results for accurate share bars
   const maxCount = withFiltered.length ? withFiltered[0].visibleLeagues.length : 1;
 
+  // Count distinct leagues in view for percentage calculation
+  const filteredLeagueIds = new Set();
+  allPlayerData.forEach(p => p.leagues.forEach(l => {
+    if (activeFilters.has(l.leagueType)) filteredLeagueIds.add(l.leagueId);
+  }));
+  const filteredLeagueCount = filteredLeagueIds.size || 1;
+
   // Update the live filtered stats
-  updateFilteredStats(withFiltered);
+  updateFilteredStats(withFiltered, filteredLeagueIds.size);
 
   controlsEl.classList.add('visible');
   countEl.textContent = `${withFiltered.length} player${withFiltered.length !== 1 ? 's' : ''}`;
@@ -1158,6 +1152,10 @@ function renderList() {
   withFiltered.forEach((p, idx) => {
     const visibleLeagues = p.visibleLeagues;
     if (!visibleLeagues.length) return;
+
+    const pct = filteredLeagueCount > 0
+      ? ((visibleLeagues.length / filteredLeagueCount) * 100).toFixed(1)
+      : '0.0';
 
     const card = document.createElement('div');
     card.className = 'player-card';
@@ -1178,7 +1176,7 @@ function renderList() {
           <div class="share-bar-wrap">
             <div class="share-bar-fill" style="width:${(visibleLeagues.length/maxCount*100).toFixed(0)}%"></div>
           </div>
-          <div class="share-count">${visibleLeagues.length}</div>
+          <div class="share-count">${visibleLeagues.length}<span class="share-pct">(${pct}%)</span></div>
         </div>
         <svg class="expand-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
@@ -1187,26 +1185,33 @@ function renderList() {
           const meta = TYPE_META[l.leagueType] || TYPE_META['redraft-lineup'];
           const isDynasty = l.leagueType === 'dynasty-lineup' || l.leagueType === 'dynasty-bestball';
           const isLowValue = (p.ktcValue ?? 9999) < 2000;
-          const waiver = isDynasty && isLowValue && waiverCache[l.leagueId];
-          const waiverHtml = waiver ? (() => {
-            const wClass = ktcBadgeClass(waiver.ktc);
-            return `<div class="waiver-row">
-              <span class="waiver-arrow">↳</span>
-              <span class="waiver-label">Best Available</span>
-              <span class="waiver-pos">${escHtml(waiver.pos)}</span>
-              <span class="waiver-name">${escHtml(waiver.name)}</span>
-              <span class="ktc-badge waiver-ktc ${wClass}">${waiver.ktc.toLocaleString()}</span>
-            </div>`;
-          })() : (isDynasty && isLowValue && waiverCache[l.leagueId] === null
-            ? `<div class="waiver-row"><span class="waiver-arrow">↳</span><span class="waiver-label">No pickups found</span></div>`
-            : '');
+          const cachedEntry = waiverCache.hasOwnProperty(l.leagueId) ? waiverCache[l.leagueId] : undefined;
+          let waiverHtml = '';
+          if (isDynasty && isLowValue) {
+            if (cachedEntry) {
+              const wClass = ktcBadgeClass(cachedEntry.ktc);
+              waiverHtml = `<div class="waiver-row">
+                <span class="waiver-arrow">↳</span>
+                <span class="waiver-label">Best Available</span>
+                <span class="waiver-pos">${escHtml(cachedEntry.pos)}</span>
+                <span class="waiver-name">${escHtml(cachedEntry.name)}</span>
+                <span class="ktc-badge waiver-ktc ${wClass}">${cachedEntry.ktc.toLocaleString()}</span>
+              </div>`;
+            } else if (cachedEntry === null) {
+              waiverHtml = `<div class="waiver-row"><span class="waiver-arrow">↳</span><span class="waiver-label">No pickups found</span></div>`;
+            }
+            // undefined = non-dynasty or not yet scanned, show nothing
+          }
           return `
-          <a class="league-item" href="${escHtml(l.leagueUrl)}" target="_blank" rel="noopener" title="Open ${escHtml(l.leagueName)} on Sleeper">
-            <div class="league-dot ${posDotClass(p.position)}" style="background:${meta.dot}"></div>
-            <span class="league-type-tag ${meta.tag}">${meta.label} ${meta.sub}</span>
-            <span class="league-name">${escHtml(l.leagueName)}</span>
-            <svg class="league-link-icon" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          </a>${waiverHtml}`;
+          <div class="league-item-wrap">
+            <a class="league-item" href="${escHtml(l.leagueUrl)}" target="_blank" rel="noopener" title="Open ${escHtml(l.leagueName)} on Sleeper">
+              <div class="league-dot ${posDotClass(p.position)}" style="background:${meta.dot}"></div>
+              <span class="league-type-tag ${meta.tag}">${meta.label} ${meta.sub}</span>
+              <span class="league-name">${escHtml(l.leagueName)}</span>
+              <svg class="league-link-icon" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+            ${waiverHtml}
+          </div>`;
         }).join('')}
       </div>`;
 
