@@ -3,754 +3,568 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sleeper Portfolio Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>SleeperStack — Portfolio Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0d0f14;
-    --surface: #13161d;
-    --surface2: #1a1e28;
-    --border: #252a38;
-    --accent: #7dff6b;
-    --accent2: #4daaff;
-    --warn: #ff6b6b;
-    --text: #e8eaf0;
-    --muted: #5a6070;
-    --card-hover: #1e2333;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Background grid */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(125,255,107,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(125,255,107,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 24px;
-    position: relative;
-    z-index: 1;
-  }
-
-  /* Header */
-  header {
-    padding: 48px 0 32px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 40px;
-  }
-
-  .header-inner {
-    display: flex;
-    align-items: flex-end;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-
-  .logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 52px;
-    line-height: 1;
-    letter-spacing: 2px;
-    color: var(--text);
-  }
-
-  .logo span {
-    color: var(--accent);
-  }
-
-  .tagline {
-    color: var(--muted);
-    font-size: 13px;
-    font-family: 'DM Mono', monospace;
-    padding-bottom: 4px;
-  }
-
-  /* Search bar */
-  .search-section {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 24px;
-    align-items: stretch;
-  }
-
-  .input-wrap {
-    flex: 1;
-    position: relative;
-  }
-
-  .input-wrap svg {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted);
-    pointer-events: none;
-  }
-
-  input[type="text"] {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 15px;
-    padding: 14px 14px 14px 42px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  input[type="text"]:focus {
-    border-color: var(--accent);
-  }
-
-  input[type="text"]::placeholder { color: var(--muted); }
-
-  .btn-scan {
-    background: var(--accent);
-    color: #050806;
-    border: none;
-    border-radius: 8px;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px;
-    letter-spacing: 1px;
-    padding: 0 28px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-
-  .btn-scan:hover { background: #95ff85; transform: translateY(-1px); }
-  .btn-scan:active { transform: translateY(0); }
-  .btn-scan:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-  /* League type filter */
-  .filter-section {
-    margin-bottom: 32px;
-  }
-
-  .filter-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
-
-  .filter-pills {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    user-select: none;
-    font-size: 13px;
-    font-weight: 500;
-  }
-
-  .pill:hover { border-color: var(--accent); }
-
-  .pill.active {
-    border-color: var(--accent);
-    background: rgba(125,255,107,0.08);
-    color: var(--accent);
-  }
-
-  .pill .check {
-    width: 16px;
-    height: 16px;
-    border: 1.5px solid var(--muted);
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-    flex-shrink: 0;
-  }
-
-  .pill.active .check {
-    background: var(--accent);
-    border-color: var(--accent);
-  }
-
-  .pill.active .check::after {
-    content: '';
-    width: 9px;
-    height: 5px;
-    border-left: 2px solid #050806;
-    border-bottom: 2px solid #050806;
-    transform: rotate(-45deg) translate(0px, -1px);
-  }
-
-  /* Status / progress */
-  .status-bar {
-    display: none;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 16px 20px;
-    margin-bottom: 24px;
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .status-bar.visible { display: flex; }
-
-  .spinner {
-    width: 18px;
-    height: 18px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    flex-shrink: 0;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .status-text { color: var(--muted); }
-  .status-text strong { color: var(--accent); }
-
-  /* Error */
-  .error-msg {
-    display: none;
-    background: rgba(255,107,107,0.08);
-    border: 1px solid rgba(255,107,107,0.3);
-    border-radius: 8px;
-    padding: 14px 18px;
-    color: var(--warn);
-    font-size: 14px;
-    margin-bottom: 24px;
-  }
-
-  .error-msg.visible { display: block; }
-
-  /* Stats summary */
-  .stats-row {
-    display: none;
-    gap: 16px;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-  }
-
-  .stats-row.visible { display: flex; }
-
-  .stat-card {
-    flex: 1;
-    min-width: 120px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 16px;
-  }
-
-  .stat-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 36px;
-    color: var(--accent);
-    line-height: 1;
-  }
-
-  .stat-lbl {
-    font-size: 11px;
-    color: var(--muted);
-    font-family: 'DM Mono', monospace;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 4px;
-  }
-
-  /* Search/sort bar */
-  .results-controls {
-    display: none;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .results-controls.visible { display: flex; }
-
-  .results-count {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  .player-search-wrap {
-    position: relative;
-  }
-
-  .player-search-wrap svg {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted);
-    pointer-events: none;
-  }
-
-  #playerSearch {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    padding: 8px 12px 8px 32px;
-    outline: none;
-    width: 220px;
-    transition: border-color 0.2s;
-  }
-
-  #playerSearch:focus { border-color: var(--accent); }
-  #playerSearch::placeholder { color: var(--muted); }
-
-  /* Player list */
-  .player-list { display: flex; flex-direction: column; gap: 6px; }
-
-  .player-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-    transition: border-color 0.2s;
-  }
-
-  .player-card:hover { border-color: rgba(125,255,107,0.25); }
-
-  .player-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .player-header:hover { background: var(--card-hover); }
-
-  .rank-badge {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    width: 28px;
-    text-align: right;
-    flex-shrink: 0;
-  }
-
-  .player-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    flex-shrink: 0;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 14px;
-    color: var(--muted);
-  }
-
-  .player-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .player-info { flex: 1; min-width: 0; }
-
-  .player-name {
-    font-weight: 600;
-    font-size: 15px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .player-meta {
-    font-size: 12px;
-    color: var(--muted);
-    font-family: 'DM Mono', monospace;
-    margin-top: 2px;
-  }
-
-  .share-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-  }
-
-  .share-bar-wrap {
-    width: 80px;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-
-  .share-bar-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 2px;
-    transition: width 0.4s ease;
-  }
-
-  .share-count {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    color: var(--accent);
-    line-height: 1;
-    min-width: 28px;
-    text-align: right;
-    white-space: nowrap;
-  }
-
-  .share-pct {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    margin-left: 4px;
-    font-weight: 400;
-    vertical-align: middle;
-  }
-
-  /* League item wrapper — keeps waiver row visually grouped with its league */
-  .league-item-wrap {
-    border-bottom: 1px solid var(--border);
-  }
-
-  .league-item-wrap:last-child { border-bottom: none; }
-
-  .league-item-wrap .league-item {
-    border-bottom: none;
-  }
-
-  .expand-icon {
-    color: var(--muted);
-    transition: transform 0.25s;
-    flex-shrink: 0;
-  }
-
-  .player-card.open .expand-icon { transform: rotate(180deg); }
-
-  /* League list */
-  .league-list {
-    display: none;
-    border-top: 1px solid var(--border);
-    padding: 8px 0;
-  }
-
-  .player-card.open .league-list { display: block; }
-
-  .league-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 16px 10px 76px;
-    font-size: 13px;
-    text-decoration: none;
-    color: var(--text);
-    transition: background 0.15s;
-    cursor: pointer;
-    border: none;
-    background: none;
-    width: 100%;
-    text-align: left;
-  }
-
-  .league-item:hover { background: var(--card-hover); }
-
-  .league-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .league-type-tag {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 3px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    flex-shrink: 0;
-  }
-
-  .tag-dynasty-lineup    { background: rgba(77,170,255,0.15); color: #4daaff; }
-  .tag-dynasty-bestball  { background: rgba(185,107,255,0.15); color: #b96bff; }
-  .tag-redraft-lineup    { background: rgba(255,185,107,0.15); color: #ffb96b; }
-  .tag-redraft-bestball  { background: rgba(107,255,185,0.15); color: #6bffb9; }
-
-  .league-name {
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .league-link-icon {
-    color: var(--muted);
-    opacity: 0;
-    transition: opacity 0.15s;
-    flex-shrink: 0;
-  }
-
-  .league-item:hover .league-link-icon { opacity: 1; color: var(--accent); }
-
-  /* Waiver suggestion row */
-  .waiver-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 16px 10px 76px;
-    font-size: 12px;
-    font-family: 'DM Mono', monospace;
-    color: var(--muted);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .waiver-row:last-child { border-bottom: none; }
-
-  .waiver-row-link {
-    text-decoration: none;
-    transition: background 0.15s;
-    cursor: pointer;
-  }
-
-  .waiver-row-link:hover {
-    background: var(--card-hover);
-  }
-
-  .waiver-row-link:hover .waiver-name {
-    color: var(--accent);
-  }
-
-  .waiver-row-link:hover .league-link-icon {
-    opacity: 1 !important;
-    color: var(--accent);
-  }
-
-  .waiver-arrow {
-    color: var(--muted);
-    font-size: 11px;
-    flex-shrink: 0;
-  }
-
-  .waiver-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--muted);
-    flex-shrink: 0;
-  }
-
-  .waiver-name {
-    color: var(--text);
-    font-weight: 500;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-  }
-
-  .waiver-pos {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    flex-shrink: 0;
-  }
-
-  .waiver-ktc {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    padding: 1px 6px;
-    border-radius: 3px;
-    flex-shrink: 0;
-  }
-
-  .waiver-locked {
-    opacity: 0.55;
-    cursor: default;
-    pointer-events: none;
-  }
-
-  .waiver-locked-badge {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--warn);
-    letter-spacing: 0.3px;
-    flex-shrink: 0;
-    margin-left: auto;
-  }
-
-  /* Empty state */
-  .empty-state {
-    display: none;
-    text-align: center;
-    padding: 60px 0;
-    color: var(--muted);
-  }
-
-  .empty-state.visible { display: block; }
-
-  .empty-state svg { margin-bottom: 16px; opacity: 0.3; }
-
-  .empty-state p { font-size: 14px; }
-
-  /* KTC value badge */
-  .ktc-badge {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    padding: 2px 7px;
-    border-radius: 4px;
-    flex-shrink: 0;
-    letter-spacing: 0.3px;
-  }
-  .ktc-elite  { background: rgba(125,255,107,0.15); color: #7dff6b; border: 1px solid rgba(125,255,107,0.25); }
-  .ktc-high   { background: rgba(77,170,255,0.15);  color: #4daaff; border: 1px solid rgba(77,170,255,0.25); }
-  .ktc-mid    { background: rgba(255,185,107,0.15); color: #ffb96b; border: 1px solid rgba(255,185,107,0.25); }
-  .ktc-low    { background: rgba(255,107,107,0.12); color: #ff8080; border: 1px solid rgba(255,107,107,0.2); }
-  .ktc-none   { background: rgba(90,96,112,0.15);   color: var(--muted); border: 1px solid transparent; }
-
-  /* Sort toggle */
-  .sort-toggle {
-    display: flex;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-
-  .sort-btn {
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    padding: 7px 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-
-  .sort-btn:hover { color: var(--text); }
-  .sort-btn.active { background: var(--surface2); color: var(--accent); }
-
-  /* Position dots */
-  .pos-qb  { background: #ff6b6b; }
-  .pos-rb  { background: var(--accent); }
-  .pos-wr  { background: var(--accent2); }
-  .pos-te  { background: #ffb96b; }
-  .pos-k   { background: #b96bff; }
-  .pos-def { background: var(--muted); }
-  .pos-dl  { background: #ff6b6b; }
-  .pos-lb  { background: #6bffb9; }
-  .pos-db  { background: #4daaff; }
-  .pos-default { background: var(--muted); }
-
-  footer {
-    padding: 40px 0;
-    text-align: center;
-    color: var(--muted);
-    font-size: 12px;
-    font-family: 'DM Mono', monospace;
-    border-top: 1px solid var(--border);
-    margin-top: 60px;
-  }
-
-  footer a { color: var(--muted); text-decoration: none; }
-  footer a:hover { color: var(--accent); }
-
-  @media (max-width: 600px) {
-    .logo { font-size: 38px; }
-    .share-bar-wrap { display: none; }
-    #playerSearch { width: 160px; }
-  }
+:root {
+  --bg:       #0a0b0e;
+  --bg2:      #0f1117;
+  --surface:  #141720;
+  --surface2: #1c2030;
+  --border:   #232840;
+  --border2:  #2d3450;
+  --amber:    #f5a623;
+  --amber2:   #ffbe55;
+  --blue:     #4d8fff;
+  --purple:   #a855f7;
+  --green:    #22c55e;
+  --red:      #ef4444;
+  --text:     #e2e6f0;
+  --muted:    #4a5270;
+  --muted2:   #6b7499;
+  --card-hover: #181d2e;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+/* ── Noise overlay ── */
+body::after {
+  content:''; position:fixed; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:9998; opacity:0.6;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Barlow', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Ambient glow top */
+body::before {
+  content:''; position:fixed; top:-200px; left:50%; transform:translateX(-50%);
+  width:800px; height:400px;
+  background: radial-gradient(ellipse, rgba(245,166,35,0.07) 0%, transparent 70%);
+  pointer-events:none; z-index:0;
+}
+
+.container { max-width:960px; margin:0 auto; padding:0 24px; position:relative; z-index:1; }
+
+/* ── HEADER ── */
+header {
+  padding: 52px 0 28px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 36px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.logo-block {}
+
+.logo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 56px;
+  line-height: 0.9;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+}
+
+.logo-sleeper { color: var(--text); }
+.logo-stack   { color: var(--amber); }
+
+.logo-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.header-tag {
+  background: rgba(245,166,35,0.1);
+  border: 1px solid rgba(245,166,35,0.25);
+  color: var(--amber);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 3px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+/* ── SEARCH ── */
+.search-section {
+  display: flex; gap: 10px; margin-bottom: 28px; align-items: stretch;
+}
+
+.input-wrap { flex:1; position:relative; }
+.input-wrap svg {
+  position:absolute; left:14px; top:50%; transform:translateY(-50%);
+  color:var(--muted); pointer-events:none;
+}
+
+input[type="text"] {
+  width:100%;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  padding: 13px 14px 13px 42px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+input[type="text"]:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px rgba(245,166,35,0.1);
+}
+input[type="text"]::placeholder { color: var(--muted); }
+
+.btn-scan {
+  background: var(--amber);
+  color: #0a0704;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 0 32px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+.btn-scan::after {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+}
+.btn-scan:hover { background: var(--amber2); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(245,166,35,0.35); }
+.btn-scan:active { transform: translateY(0); }
+.btn-scan:disabled { opacity:0.35; cursor:not-allowed; transform:none; box-shadow:none; }
+
+/* ── FILTER PANELS ── */
+.filters-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+@media(max-width:640px){ .filters-grid { grid-template-columns:1fr; } }
+
+.filter-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.filter-panel-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filter-panel-label::after {
+  content:''; flex:1; height:1px; background:var(--border);
+}
+
+.pill-group { display:flex; gap:8px; flex-wrap:wrap; }
+
+.pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 5px;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted2);
+}
+.pill:hover { border-color: var(--amber); color: var(--text); }
+.pill.active {
+  border-color: var(--amber);
+  background: rgba(245,166,35,0.1);
+  color: var(--amber);
+}
+.pill .check {
+  width:14px; height:14px;
+  border: 1.5px solid var(--muted);
+  border-radius: 3px;
+  display:flex; align-items:center; justify-content:center;
+  transition: all 0.15s; flex-shrink:0;
+}
+.pill.active .check { background:var(--amber); border-color:var(--amber); }
+.pill.active .check::after {
+  content:''; width:8px; height:4px;
+  border-left: 2px solid #0a0704;
+  border-bottom: 2px solid #0a0704;
+  transform: rotate(-45deg) translate(0,-1px);
+}
+
+/* Position filter pills with color accents */
+.pill[data-pos="QB"].active  { border-color:#ef4444; background:rgba(239,68,68,0.1); color:#ef4444; }
+.pill[data-pos="QB"].active .check { background:#ef4444; border-color:#ef4444; }
+.pill[data-pos="RB"].active  { border-color:#22c55e; background:rgba(34,197,94,0.1); color:#22c55e; }
+.pill[data-pos="RB"].active .check { background:#22c55e; border-color:#22c55e; }
+.pill[data-pos="WR"].active  { border-color:var(--blue); background:rgba(77,143,255,0.1); color:var(--blue); }
+.pill[data-pos="WR"].active .check { background:var(--blue); border-color:var(--blue); }
+.pill[data-pos="TE"].active  { border-color:#f59e0b; background:rgba(245,158,11,0.1); color:#f59e0b; }
+.pill[data-pos="TE"].active .check { background:#f59e0b; border-color:#f59e0b; }
+
+/* ── STATUS BAR ── */
+.status-bar {
+  display:none; background:var(--surface); border:1px solid var(--border2);
+  border-radius:8px; padding:14px 18px; margin-bottom:20px;
+  font-family:'JetBrains Mono',monospace; font-size:12px;
+  align-items:center; gap:12px;
+}
+.status-bar.visible { display:flex; }
+.spinner {
+  width:16px; height:16px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--amber);
+  border-radius:50%;
+  animation: spin 0.6s linear infinite;
+  flex-shrink:0;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.status-text { color:var(--muted2); }
+.status-text strong { color:var(--amber); }
+
+/* ── ERROR ── */
+.error-msg {
+  display:none; background:rgba(239,68,68,0.08);
+  border:1px solid rgba(239,68,68,0.3);
+  border-radius:8px; padding:13px 16px;
+  color:#f87171; font-size:13px; margin-bottom:20px;
+}
+.error-msg.visible { display:block; }
+
+/* ── STATS ROW ── */
+.stats-row {
+  display:none; gap:12px; margin-bottom:24px; flex-wrap:wrap;
+}
+.stats-row.visible { display:flex; }
+
+.stat-card {
+  flex:1; min-width:100px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius:8px; padding:14px 16px;
+  position:relative; overflow:hidden;
+}
+.stat-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, var(--amber), transparent);
+}
+.stat-card.highlight::before { background: linear-gradient(90deg, var(--amber2), var(--amber)); }
+
+.stat-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 38px;
+  color: var(--amber);
+  line-height: 1;
+}
+.stat-lbl {
+  font-size: 10px;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 4px;
+}
+
+/* ── RESULTS CONTROLS ── */
+.results-controls {
+  display:none; justify-content:space-between; align-items:center;
+  margin-bottom:14px; gap:10px; flex-wrap:wrap;
+}
+.results-controls.visible { display:flex; }
+
+.results-count {
+  font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted);
+}
+
+.controls-right { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
+.sort-toggle {
+  display:flex; background:var(--surface); border:1px solid var(--border2); border-radius:5px; overflow:hidden;
+}
+.sort-btn {
+  background:none; border:none; color:var(--muted);
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  text-transform:uppercase; letter-spacing:1px;
+  padding:7px 14px; cursor:pointer; transition:all 0.15s; white-space:nowrap;
+}
+.sort-btn:hover { color:var(--text); }
+.sort-btn.active { background:var(--surface2); color:var(--amber); }
+
+.player-search-wrap { position:relative; }
+.player-search-wrap svg {
+  position:absolute; left:10px; top:50%; transform:translateY(-50%);
+  color:var(--muted); pointer-events:none;
+}
+#playerSearch {
+  background:var(--surface); border:1px solid var(--border2);
+  border-radius:5px; color:var(--text);
+  font-family:'Barlow',sans-serif; font-size:13px;
+  padding:7px 12px 7px 30px; outline:none; width:200px;
+  transition:border-color 0.2s;
+}
+#playerSearch:focus { border-color:var(--amber); }
+#playerSearch::placeholder { color:var(--muted); }
+
+/* ── PLAYER LIST ── */
+.player-list { display:flex; flex-direction:column; gap:4px; }
+
+.player-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.player-card:hover { border-color: var(--border2); }
+.player-card.open  { border-color: rgba(245,166,35,0.3); }
+
+.player-header {
+  display:flex; align-items:center; gap:12px;
+  padding: 12px 16px;
+  cursor:pointer; transition:background 0.15s;
+}
+.player-header:hover { background:var(--card-hover); }
+
+.rank-badge {
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  color:var(--muted); width:26px; text-align:right; flex-shrink:0;
+}
+
+.player-avatar {
+  width:38px; height:38px; border-radius:50%;
+  background:var(--surface2); border:1px solid var(--border2);
+  flex-shrink:0; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Barlow Condensed',sans-serif; font-weight:700;
+  font-size:14px; color:var(--muted);
+}
+.player-avatar img { width:100%; height:100%; object-fit:cover; }
+
+.player-info { flex:1; min-width:0; }
+
+.player-name {
+  font-family:'Barlow Condensed',sans-serif; font-weight:700;
+  font-size:17px; letter-spacing:0.3px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+.player-meta { font-size:11px; color:var(--muted2); margin-top:2px; display:flex; align-items:center; gap:6px; }
+
+/* Position badge inline */
+.pos-badge {
+  font-family:'Barlow Condensed',sans-serif; font-weight:700;
+  font-size:10px; padding:1px 5px; border-radius:3px;
+  letter-spacing:0.5px;
+}
+.pos-QB  { background:rgba(239,68,68,0.2);  color:#f87171; }
+.pos-RB  { background:rgba(34,197,94,0.2);  color:#4ade80; }
+.pos-WR  { background:rgba(77,143,255,0.2); color:#7eb5ff; }
+.pos-TE  { background:rgba(245,158,11,0.2); color:#fbbf24; }
+.pos-K   { background:rgba(168,85,247,0.2); color:#c084fc; }
+.pos-DEF { background:rgba(100,116,139,0.2);color:#94a3b8; }
+.pos-UNK { background:rgba(100,116,139,0.15);color:var(--muted2); }
+
+.share-info { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+
+.share-bar-wrap {
+  width:72px; height:3px; background:var(--border2); border-radius:2px; overflow:hidden;
+}
+.share-bar-fill { height:100%; background:var(--amber); border-radius:2px; transition:width 0.4s ease; }
+
+.share-count {
+  font-family:'Barlow Condensed',sans-serif; font-weight:700;
+  font-size:24px; color:var(--amber); line-height:1;
+  min-width:24px; text-align:right; white-space:nowrap;
+}
+.share-pct {
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  color:var(--muted); margin-left:3px; font-weight:400;
+}
+
+.expand-icon { color:var(--muted); transition:transform 0.25s; flex-shrink:0; }
+.player-card.open .expand-icon { transform:rotate(180deg); color:var(--amber); }
+
+/* ── KTC BADGES ── */
+.ktc-badge {
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:500;
+  padding:3px 8px; border-radius:4px; flex-shrink:0; letter-spacing:0.3px;
+}
+.ktc-elite { background:rgba(34,197,94,0.15);  color:#4ade80; border:1px solid rgba(34,197,94,0.25); }
+.ktc-high  { background:rgba(77,143,255,0.15); color:#7eb5ff; border:1px solid rgba(77,143,255,0.25); }
+.ktc-mid   { background:rgba(245,166,35,0.15); color:var(--amber); border:1px solid rgba(245,166,35,0.25); }
+.ktc-low   { background:rgba(239,68,68,0.12);  color:#f87171; border:1px solid rgba(239,68,68,0.2); }
+.ktc-none  { background:rgba(100,116,139,0.15);color:var(--muted2); border:1px solid transparent; }
+
+/* ── LEAGUE LIST ── */
+.league-list { display:none; border-top:1px solid var(--border); }
+.player-card.open .league-list { display:block; }
+
+.league-item-wrap { border-bottom:1px solid var(--border); }
+.league-item-wrap:last-child { border-bottom:none; }
+
+.league-item {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 16px 10px 72px;
+  font-size:13px; text-decoration:none; color:var(--text);
+  transition:background 0.15s; cursor:pointer;
+}
+.league-item:hover { background:var(--card-hover); }
+
+.league-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+
+.league-type-tag {
+  font-family:'JetBrains Mono',monospace; font-size:9px;
+  padding:2px 6px; border-radius:3px;
+  text-transform:uppercase; letter-spacing:0.5px; flex-shrink:0;
+}
+.tag-dynasty-lineup   { background:rgba(77,143,255,0.15); color:#7eb5ff; }
+.tag-dynasty-bestball { background:rgba(168,85,247,0.15); color:#c084fc; }
+.tag-redraft-lineup   { background:rgba(245,158,11,0.15); color:#fbbf24; }
+.tag-redraft-bestball { background:rgba(34,197,94,0.15);  color:#4ade80; }
+
+.league-name { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px; }
+
+.league-link-icon { color:var(--muted); opacity:0; transition:opacity 0.15s; flex-shrink:0; }
+.league-item:hover .league-link-icon { opacity:1; color:var(--amber); }
+
+/* ── WAIVER ROW ── */
+.waiver-row {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 16px 9px 72px;
+  font-size:11px; font-family:'JetBrains Mono',monospace;
+  color:var(--muted); background:rgba(245,166,35,0.03);
+}
+.waiver-ktc { font-family:'JetBrains Mono',monospace; font-size:11px; padding:1px 6px; border-radius:3px; flex-shrink:0; }
+.waiver-arrow { color:var(--amber); opacity:0.5; font-size:12px; flex-shrink:0; }
+.waiver-label { font-size:9px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); flex-shrink:0; }
+.waiver-pos { font-size:10px; color:var(--muted2); flex-shrink:0; font-weight:500; }
+.waiver-name { color:var(--text); font-family:'Barlow',sans-serif; font-size:13px; font-weight:600; }
+
+.waiver-row-link { text-decoration:none; transition:background 0.15s; cursor:pointer; }
+.waiver-row-link:hover { background:rgba(245,166,35,0.07); }
+.waiver-row-link:hover .waiver-name { color:var(--amber); }
+.waiver-row-link:hover .league-link-icon { opacity:1 !important; color:var(--amber); }
+
+.waiver-locked { opacity:0.45; cursor:default; pointer-events:none; }
+.waiver-locked-badge {
+  font-family:'JetBrains Mono',monospace; font-size:9px;
+  color:var(--red); letter-spacing:0.5px; flex-shrink:0; margin-left:auto;
+}
+
+/* ── EMPTY STATE ── */
+.empty-state { display:none; text-align:center; padding:60px 0; color:var(--muted); }
+.empty-state.visible { display:block; }
+.empty-state p { font-size:13px; font-family:'JetBrains Mono',monospace; }
+
+/* ── POSITION DOTS (league list) ── */
+.pos-dot-qb  { background:#ef4444; }
+.pos-dot-rb  { background:#22c55e; }
+.pos-dot-wr  { background:#4d8fff; }
+.pos-dot-te  { background:#f59e0b; }
+.pos-dot-def { background:var(--muted); }
+.pos-dot-default { background:var(--muted); }
+
+/* ── FOOTER ── */
+footer {
+  padding:40px 0; text-align:center; color:var(--muted);
+  font-size:11px; font-family:'JetBrains Mono',monospace;
+  border-top:1px solid var(--border); margin-top:60px;
+}
+footer a { color:var(--muted); text-decoration:none; }
+footer a:hover { color:var(--amber); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(8px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.player-card { animation: fadeUp 0.2s ease both; }
+
+@media(max-width:600px){
+  .logo { font-size:42px; }
+  .share-bar-wrap { display:none; }
+  #playerSearch { width:150px; }
+  .filters-grid { grid-template-columns:1fr; }
+}
 </style>
 </head>
 <body>
-
 <div class="container">
   <header>
-    <div class="header-inner">
-      <div class="logo">Sleeper<span>Stack</span></div>
-      <div class="tagline">// portfolio exposure tracker</div>
+    <div class="logo-block">
+      <div class="logo">
+        <span class="logo-sleeper">Sleeper</span><span class="logo-stack">Stack</span>
+      </div>
+      <div class="logo-sub">Portfolio Exposure Tracker</div>
     </div>
+    <div class="header-tag">2026 Season</div>
   </header>
 
   <div class="search-section">
     <div class="input-wrap">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="usernameInput" placeholder="Sleeper username..." autocomplete="off" />
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="usernameInput" placeholder="Enter Sleeper username..." autocomplete="off" />
     </div>
     <button class="btn-scan" id="scanBtn" onclick="startScan()">SCAN</button>
   </div>
 
-  <div class="filter-section">
-    <div class="filter-label">League Types</div>
-    <div class="filter-pills">
-      <div class="pill active" data-type="dynasty-lineup" onclick="toggleFilter(this)">
-        <div class="check"></div>Dynasty Lineup
-      </div>
-      <div class="pill active" data-type="dynasty-bestball" onclick="toggleFilter(this)">
-        <div class="check"></div>Dynasty Bestball
-      </div>
-      <div class="pill active" data-type="redraft-lineup" onclick="toggleFilter(this)">
-        <div class="check"></div>Redraft Lineup
-      </div>
-      <div class="pill active" data-type="redraft-bestball" onclick="toggleFilter(this)">
-        <div class="check"></div>Redraft Bestball
+  <div class="filters-grid">
+    <div class="filter-panel">
+      <div class="filter-panel-label">League Types</div>
+      <div class="pill-group">
+        <div class="pill active" data-type="dynasty-lineup"   onclick="toggleFilter(this)"><div class="check"></div>Dynasty Lineup</div>
+        <div class="pill active" data-type="dynasty-bestball" onclick="toggleFilter(this)"><div class="check"></div>Dynasty BB</div>
+        <div class="pill active" data-type="redraft-lineup"   onclick="toggleFilter(this)"><div class="check"></div>Redraft Lineup</div>
+        <div class="pill active" data-type="redraft-bestball" onclick="toggleFilter(this)"><div class="check"></div>Redraft BB</div>
       </div>
     </div>
-  </div>
-
-  <div class="filter-section" style="margin-top:-16px;">
-    <div class="filter-label">Waiver Options</div>
-    <div class="filter-pills">
-      <div class="pill active" id="excludeRookiesPill" onclick="toggleExcludeRookies(this)">
-        <div class="check"></div>Exclude Pre-Draft Rookies
+    <div class="filter-panel">
+      <div class="filter-panel-label">Position</div>
+      <div class="pill-group" id="posFilterGroup">
+        <div class="pill active" data-pos="QB" onclick="togglePos(this)"><div class="check"></div>QB</div>
+        <div class="pill active" data-pos="RB" onclick="togglePos(this)"><div class="check"></div>RB</div>
+        <div class="pill active" data-pos="WR" onclick="togglePos(this)"><div class="check"></div>WR</div>
+        <div class="pill active" data-pos="TE" onclick="togglePos(this)"><div class="check"></div>TE</div>
+        <div class="pill active" data-pos="OTHER" onclick="togglePos(this)"><div class="check"></div>Other</div>
       </div>
-      <div class="pill" id="lowValueOnlyPill" onclick="toggleLowValueOnly(this)">
-        <div class="check"></div>Show Low Value Only (&lt;2,000 / N/A)
+    </div>
+    <div class="filter-panel">
+      <div class="filter-panel-label">Waiver Options</div>
+      <div class="pill-group">
+        <div class="pill active" id="excludeRookiesPill" onclick="toggleExcludeRookies(this)"><div class="check"></div>Exclude Pre-Draft Rookies</div>
+        <div class="pill" id="lowValueOnlyPill" onclick="toggleLowValueOnly(this)"><div class="check"></div>Low Value Only (&lt;2k / N/A)</div>
       </div>
     </div>
   </div>
@@ -767,7 +581,7 @@
       <div class="stat-num" id="statLeagues">0</div>
       <div class="stat-lbl">Leagues Scanned</div>
     </div>
-    <div class="stat-card" style="border-color: rgba(125,255,107,0.35);">
+    <div class="stat-card highlight">
       <div class="stat-num" id="statFiltered">0</div>
       <div class="stat-lbl">Leagues in View</div>
     </div>
@@ -779,13 +593,13 @@
 
   <div class="results-controls" id="resultsControls">
     <div class="results-count" id="resultsCount"></div>
-    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+    <div class="controls-right">
       <div class="sort-toggle">
         <button class="sort-btn active" id="sortShares" onclick="setSort('shares')">Shares</button>
-        <button class="sort-btn" id="sortKtc" onclick="setSort('ktc')">KTC Value</button>
+        <button class="sort-btn" id="sortKtc" onclick="setSort('ktc')">KTC</button>
       </div>
       <div class="player-search-wrap">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" id="playerSearch" placeholder="Filter players..." oninput="filterPlayers()" />
       </div>
     </div>
@@ -794,13 +608,13 @@
   <div class="player-list" id="playerList"></div>
 
   <div class="empty-state" id="emptyState">
-    <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 14px;display:block;opacity:0.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <p>No players match your current filters.</p>
   </div>
 
   <footer>
-    Built for <a href="https://sleeper.com" target="_blank">Sleeper</a> fantasy —
-    data via Sleeper public API —
+    Built for <a href="https://sleeper.com" target="_blank">Sleeper</a> fantasy &nbsp;·&nbsp;
+    Data via Sleeper public API &nbsp;·&nbsp;
     <a href="https://github.com/" target="_blank">GitHub</a>
   </footer>
 </div>
@@ -809,44 +623,42 @@
 // ─── State ────────────────────────────────────────────────────────────────────
 let allPlayerData = [];
 let playersDb = {};
-let ktcMap = {};        // normalized name -> KTC value
+let ktcMap = {};
 let ktcLoaded = false;
-let currentSort = 'shares'; // 'shares' | 'ktc'
+let currentSort = 'shares';
 let activeFilters = new Set(['dynasty-lineup','dynasty-bestball','redraft-lineup','redraft-bestball']);
-let waiverCache = {};   // leagueId -> { bestPid, bestName, bestPos, bestKtc } | null
-let rosterCache = {};  // leagueId -> Set of all rostered player IDs (populated during main scan)
+let activePosFilters = new Set(['QB','RB','WR','TE','OTHER']);
+let waiverCache = {};
+let rosterCache = {};
 let excludeRookies = true;
 let lowValueOnly = false;
 
-// ─── Low value only toggle ────────────────────────────────────────────────────
+// ─── Filter toggles ───────────────────────────────────────────────────────────
+function toggleFilter(pill) {
+  const type = pill.dataset.type;
+  if (activeFilters.has(type)) { activeFilters.delete(type); pill.classList.remove('active'); }
+  else { activeFilters.add(type); pill.classList.add('active'); }
+  renderList();
+}
+
+function togglePos(pill) {
+  const pos = pill.dataset.pos;
+  if (activePosFilters.has(pos)) { activePosFilters.delete(pos); pill.classList.remove('active'); }
+  else { activePosFilters.add(pos); pill.classList.add('active'); }
+  renderList();
+}
+
 function toggleLowValueOnly(pill) {
   lowValueOnly = !lowValueOnly;
   pill.classList.toggle('active', lowValueOnly);
   renderList();
 }
 
-// ─── Filter toggle ────────────────────────────────────────────────────────────
-function toggleFilter(pill) {
-  const type = pill.dataset.type;
-  if (activeFilters.has(type)) {
-    activeFilters.delete(type);
-    pill.classList.remove('active');
-  } else {
-    activeFilters.add(type);
-    pill.classList.add('active');
-  }
-  renderList();
-}
-
-// ─── Rookie exclusion toggle ──────────────────────────────────────────────────
+// ─── Rookie toggle ────────────────────────────────────────────────────────────
 async function toggleExcludeRookies(pill) {
   excludeRookies = !excludeRookies;
   pill.classList.toggle('active', excludeRookies);
-
-  // If we have scan data, re-run the waiver pass with the new setting
-  if (allPlayerData.length) {
-    await rerunWaiverScan();
-  }
+  if (allPlayerData.length) await rerunWaiverScan();
 }
 
 async function rerunWaiverScan() {
@@ -861,10 +673,8 @@ async function rerunWaiverScan() {
       }
     }
   }
-
   showStatus(`Re-scanning waivers (rookies ${excludeRookies ? 'excluded' : 'included'})...`);
   document.getElementById('scanBtn').disabled = true;
-
   let idx = 0;
   for (const lid of dynastyLeagueIds) {
     idx++;
@@ -873,47 +683,40 @@ async function rerunWaiverScan() {
     const faData = await fetchFreeAgents(lid);
     waiverCache[lid] = faData ? findBestWaiverPickup(faData) : null;
   }
-
   hideStatus();
   document.getElementById('scanBtn').disabled = false;
   renderList();
 }
+
+// ─── KTC ─────────────────────────────────────────────────────────────────────
 async function loadKtcData() {
   if (ktcLoaded) return;
   try {
     const r = await fetch('ktc_values.csv');
-    if (!r.ok) return; // silently skip if file not present
+    if (!r.ok) return;
     const text = await r.text();
-    const lines = text.trim().split('\n').slice(1); // skip header
+    const lines = text.trim().split('\n').slice(1);
     for (const line of lines) {
       const comma = line.indexOf(',');
       if (comma === -1) continue;
       const name = line.slice(0, comma).trim();
       const val  = parseInt(line.slice(comma + 1).trim(), 10);
-      if (name && !isNaN(val)) {
-        ktcMap[normalizeName(name)] = val;
-      }
+      if (name && !isNaN(val)) ktcMap[normalizeName(name)] = val;
     }
     ktcLoaded = true;
-  } catch(e) {
-    // KTC data unavailable — app works fine without it
-  }
+  } catch(e) {}
 }
 
-// Normalize name for fuzzy matching: lowercase, strip punctuation/suffixes
 function normalizeName(name) {
-  return name
-    .toLowerCase()
-    .replace(/\s+(jr\.?|sr\.?|ii|iii|iv)$/i, '') // strip suffix
-    .replace(/['.'\-]/g, '')                        // strip apostrophes, periods, hyphens
-    .replace(/\s+/g, ' ')
-    .trim();
+  return name.toLowerCase()
+    .replace(/\s+(jr\.?|sr\.?|ii|iii|iv)$/i, '')
+    .replace(/['.'\-]/g, '')
+    .replace(/\s+/g, ' ').trim();
 }
 
 function getKtcValue(playerName) {
   if (!ktcLoaded) return null;
   const key = normalizeName(playerName);
-  // Exact normalized match only — no fuzzy fallback to avoid wrong player collisions
   return ktcMap[key] !== undefined ? ktcMap[key] : null;
 }
 
@@ -924,11 +727,7 @@ function ktcBadgeClass(val) {
   if (val >= 2000)  return 'ktc-mid';
   return 'ktc-low';
 }
-
-function ktcBadgeLabel(val) {
-  if (val === null) return 'N/A';
-  return val.toLocaleString();
-}
+function ktcBadgeLabel(val) { return val === null ? 'N/A' : val.toLocaleString(); }
 
 // ─── Sort ─────────────────────────────────────────────────────────────────────
 function setSort(mode) {
@@ -938,163 +737,117 @@ function setSort(mode) {
   renderList();
 }
 
-// ─── Update filtered stat cards ───────────────────────────────────────────────
+// ─── Stats ────────────────────────────────────────────────────────────────────
 function updateFilteredStats(withFiltered, leagueCount) {
   if (!allPlayerData.length) return;
-
   document.getElementById('statFiltered').textContent = leagueCount ?? 0;
   document.getElementById('statPlayers').textContent  = withFiltered.length;
 }
 
-// ─── Classify league type ─────────────────────────────────────────────────────
+// ─── League classify ──────────────────────────────────────────────────────────
 function classifyLeague(league) {
-  const name  = (league.name || '').toLowerCase();
-  const sport = league.sport || '';
+  const name = (league.name || '').toLowerCase();
   const settings = league.settings || {};
   const bestball = settings.best_ball === 1 || league.league_type === 'bestball';
-
-  // Sleeper uses "type" 2 for dynasty in some cases, or we check settings
-  const isDynasty = settings.type === 2 || 
-                    settings.type === '2' ||
-                    name.includes('dynasty') ||
-                    (settings.taxi_slots && settings.taxi_slots > 0);
-
-  if (isDynasty && bestball)  return 'dynasty-bestball';
-  if (isDynasty)              return 'dynasty-lineup';
-  if (bestball)               return 'redraft-bestball';
+  const isDynasty = settings.type === 2 || settings.type === '2' ||
+                    name.includes('dynasty') || (settings.taxi_slots && settings.taxi_slots > 0);
+  if (isDynasty && bestball) return 'dynasty-bestball';
+  if (isDynasty)             return 'dynasty-lineup';
+  if (bestball)              return 'redraft-bestball';
   return 'redraft-lineup';
 }
 
-// ─── League type display labels & colors ──────────────────────────────────────
 const TYPE_META = {
-  'dynasty-lineup':   { label: 'Dynasty',  sub: 'Lineup',   dot: '#4daaff', tag: 'tag-dynasty-lineup' },
-  'dynasty-bestball': { label: 'Dynasty',  sub: 'Bestball', dot: '#b96bff', tag: 'tag-dynasty-bestball' },
-  'redraft-lineup':   { label: 'Redraft',  sub: 'Lineup',   dot: '#ffb96b', tag: 'tag-redraft-lineup' },
-  'redraft-bestball': { label: 'Redraft',  sub: 'Bestball', dot: '#6bffb9', tag: 'tag-redraft-bestball' },
+  'dynasty-lineup':   { label:'Dynasty', sub:'Lineup',   dot:'#4d8fff', tag:'tag-dynasty-lineup' },
+  'dynasty-bestball': { label:'Dynasty', sub:'Bestball', dot:'#a855f7', tag:'tag-dynasty-bestball' },
+  'redraft-lineup':   { label:'Redraft', sub:'Lineup',   dot:'#f59e0b', tag:'tag-redraft-lineup' },
+  'redraft-bestball': { label:'Redraft', sub:'Bestball', dot:'#22c55e', tag:'tag-redraft-bestball' },
 };
 
-// ─── Position color ───────────────────────────────────────────────────────────
 function posDotClass(pos) {
-  const map = { QB:'pos-qb', RB:'pos-rb', WR:'pos-wr', TE:'pos-te', K:'pos-k', DEF:'pos-def', DL:'pos-dl', LB:'pos-lb', DB:'pos-db' };
-  return map[(pos||'').toUpperCase()] || 'pos-default';
+  const map = { QB:'pos-dot-qb', RB:'pos-dot-rb', WR:'pos-dot-wr', TE:'pos-dot-te', DEF:'pos-dot-def' };
+  return map[(pos||'').toUpperCase()] || 'pos-dot-default';
 }
 
-// ─── Player initials fallback ──────────────────────────────────────────────────
+function posClass(pos) {
+  const map = { QB:'pos-QB', RB:'pos-RB', WR:'pos-WR', TE:'pos-TE', K:'pos-K', DEF:'pos-DEF' };
+  return map[(pos||'').toUpperCase()] || 'pos-UNK';
+}
+
+function posFilterKey(pos) {
+  const skill = ['QB','RB','WR','TE'];
+  return skill.includes((pos||'').toUpperCase()) ? pos.toUpperCase() : 'OTHER';
+}
+
 function initials(name) {
   if (!name) return '?';
   const parts = name.trim().split(' ');
-  if (parts.length === 1) return parts[0][0].toUpperCase();
-  return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+  return parts.length === 1 ? parts[0][0].toUpperCase() : (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
 }
 
-// ─── Sleeper API helpers ──────────────────────────────────────────────────────
+// ─── API ──────────────────────────────────────────────────────────────────────
 const API = 'https://api.sleeper.app/v1';
-
-async function fetchUser(username) {
-  const r = await fetch(`${API}/user/${username}`);
-  if (!r.ok) throw new Error('User not found. Check your Sleeper username.');
-  return r.json();
-}
-
-async function fetchLeagues(userId, season) {
-  const r = await fetch(`${API}/user/${userId}/leagues/nfl/${season}`);
-  if (!r.ok) return [];
-  return r.json();
-}
-
-async function fetchRosters(leagueId) {
-  const r = await fetch(`${API}/league/${leagueId}/rosters`);
-  if (!r.ok) return [];
-  return r.json();
-}
-
-async function fetchPlayersDb() {
-  // Sleeper's full player DB (~5MB) – we cache it in memory for the session
-  const r = await fetch(`${API}/players/nfl`);
-  if (!r.ok) throw new Error('Failed to load player database.');
-  return r.json();
-}
+async function fetchUser(u)    { const r = await fetch(`${API}/user/${u}`); if (!r.ok) throw new Error('User not found.'); return r.json(); }
+async function fetchLeagues(uid,s) { const r = await fetch(`${API}/user/${uid}/leagues/nfl/${s}`); if (!r.ok) return []; return r.json(); }
+async function fetchRosters(lid)   { const r = await fetch(`${API}/league/${lid}/rosters`); if (!r.ok) return []; return r.json(); }
+async function fetchPlayersDb()    { const r = await fetch(`${API}/players/nfl`); if (!r.ok) throw new Error('Failed to load player database.'); return r.json(); }
 
 async function fetchFreeAgents(leagueId) {
   let rostered = rosterCache[leagueId];
-
   if (!rostered) {
     const r = await fetch(`${API}/league/${leagueId}/rosters`);
     if (!r.ok) return null;
     const freshRosters = await r.json();
     if (!freshRosters) return null;
     rostered = new Set();
-    for (const roster of freshRosters) {
-      for (const pid of [...(roster.players || []), ...(roster.taxi || []), ...(roster.reserve || [])]) {
+    for (const roster of freshRosters)
+      for (const pid of [...(roster.players||[]),...(roster.taxi||[]),...(roster.reserve||[])])
         rostered.add(String(pid));
-      }
-    }
   }
-
-  // Only return players whose name appears in the KTC CSV.
-  // For duplicate names in the DB (retired + active same name), keep only the highest PID
-  // since Sleeper always assigns newer players higher IDs.
+  // Canonical PID: highest per normalized name (newest player wins)
   const highestPidForName = {};
   for (const [pid, p] of Object.entries(playersDb)) {
     const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
     if (!name) continue;
     const norm = normalizeName(name);
-    if (ktcMap[norm] === undefined) continue; // only care about KTC players
-    if (!highestPidForName[norm] || Number(pid) > Number(highestPidForName[norm])) {
+    if (ktcMap[norm] === undefined) continue;
+    if (!highestPidForName[norm] || Number(pid) > Number(highestPidForName[norm]))
       highestPidForName[norm] = pid;
-    }
   }
-  // Build a set of the canonical PIDs (highest per name)
   const canonicalPids = new Set(Object.values(highestPidForName));
-
   return Object.keys(playersDb).filter(pid => {
     if (rostered.has(String(pid))) return false;
-    if (!canonicalPids.has(pid)) return false; // not the canonical (most recent) version
+    if (!canonicalPids.has(pid)) return false;
     const p = playersDb[pid];
     if (!p) return false;
     const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
-    if (!name) return false;
-    return ktcMap[normalizeName(name)] !== undefined;
+    return name && ktcMap[normalizeName(name)] !== undefined;
   });
 }
 
-// Given a league's free agent pid list, find the best KTC pickup
 function findBestWaiverPickup(faPids) {
   if (!faPids || !faPids.length) return null;
-  let bestPid = null, bestName = null, bestPos = '?', bestKtc = -1;
-  let fallbackPid = null, fallbackName = null, fallbackPos = '?';
-
+  let bestPid=null, bestName=null, bestPos='?', bestKtc=-1;
+  let fallbackPid=null, fallbackName=null, fallbackPos='?';
+  const SKILL = ['QB','RB','WR','TE'];
   for (const pid of faPids) {
     const p = playersDb[pid];
     if (!p) continue;
     const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
     if (!name) continue;
-
-    // Exclude pre-draft rookies (years_exp === 0) if toggle is on
     if (excludeRookies && (p.years_exp === 0 || p.years_exp === '0')) continue;
-
-    // Use p.position as primary — fantasy_positions can include flex tags (e.g. RB listed as WR)
-    const SKILL = ['QB','RB','WR','TE'];
     const primaryPos = (p.position || '').toUpperCase();
-    const fantasyPositions = (p.fantasy_positions || []).map(s => (s || '').toUpperCase());
-    const pos = SKILL.includes(primaryPos)
-      ? primaryPos
-      : fantasyPositions.find(fp => SKILL.includes(fp));
-    if (!pos) continue; // not a skill position player
-
-    // Track best KTC-matched player
+    const fantasyPositions = (p.fantasy_positions || []).map(s => (s||'').toUpperCase());
+    const pos = SKILL.includes(primaryPos) ? primaryPos : fantasyPositions.find(fp => SKILL.includes(fp));
+    if (!pos) continue;
     if (ktcLoaded) {
       const ktc = getKtcValue(name);
-      if (ktc !== null && ktc > bestKtc) {
-        bestKtc = ktc; bestPid = pid; bestName = name; bestPos = pos;
-      }
+      if (ktc !== null && ktc > bestKtc) { bestKtc=ktc; bestPid=pid; bestName=name; bestPos=pos; }
     }
-    // Always track a fallback (first valid skill player) in case nothing matches KTC
-    if (!fallbackPid) { fallbackPid = pid; fallbackName = name; fallbackPos = pos; }
+    if (!fallbackPid) { fallbackPid=pid; fallbackName=name; fallbackPos=pos; }
   }
-
-  if (bestPid) return { pid: bestPid, name: bestName, pos: bestPos, ktc: bestKtc };
-  if (fallbackPid) return { pid: fallbackPid, name: fallbackName, pos: fallbackPos, ktc: null };
+  if (bestPid) return { pid:bestPid, name:bestName, pos:bestPos, ktc:bestKtc };
+  if (fallbackPid) return { pid:fallbackPid, name:fallbackName, pos:fallbackPos, ktc:null };
   return null;
 }
 
@@ -1102,241 +855,166 @@ function findBestWaiverPickup(faPids) {
 async function startScan() {
   const username = document.getElementById('usernameInput').value.trim();
   if (!username) { showError('Please enter a Sleeper username.'); return; }
-
-  // Reset UI
   clearResults();
   showStatus('Looking up user...');
   setScanning(true);
-
   try {
-    // 1. Get user
     const user = await fetchUser(username);
     const userId = user.user_id;
 
-    // 2. Load player DB (if not cached)
     if (!Object.keys(playersDb).length) {
       setStatus('Loading player database (one-time, ~5s)...');
       playersDb = await fetchPlayersDb();
     }
-
-    // 2b. Load KTC data (non-blocking — silently skipped if CSV not present)
     await loadKtcData();
 
-    // 3. Get leagues for 2026
     setStatus('Fetching your leagues...');
     const leagues = await fetchLeagues(userId, '2026');
-
-    if (!leagues || leagues.length === 0) {
-      throw new Error('No 2026 leagues found for this account.');
-    }
+    if (!leagues || leagues.length === 0) throw new Error('No 2026 leagues found for this account.');
 
     setStatus(`Found <strong>${leagues.length}</strong> leagues. Scanning rosters...`);
-
-    // 4. For each league, find which roster belongs to user
-    const playerMap = {}; // playerId -> { info, leagues: [] }
+    const playerMap = {};
 
     for (let i = 0; i < leagues.length; i++) {
       const league = leagues[i];
       setStatus(`Scanning league ${i+1} of ${leagues.length}: <strong>${escHtml(league.name)}</strong>`);
-
       const rosters = await fetchRosters(league.league_id);
       if (!rosters) continue;
 
-      // Cache every rostered player in this league for accurate free agent detection later
-      // Force all IDs to strings — Sleeper API can return ints or strings inconsistently
+      // Cache rostered players (all rosters)
       const leagueRostered = new Set();
-      for (const roster of rosters) {
-        for (const pid of [...(roster.players || []), ...(roster.taxi || []), ...(roster.reserve || [])]) {
+      for (const roster of rosters)
+        for (const pid of [...(roster.players||[]),...(roster.taxi||[]),...(roster.reserve||[])])
           leagueRostered.add(String(pid));
-        }
-      }
       rosterCache[league.league_id] = leagueRostered;
 
-      // Find the roster owned by this user
       const myRoster = rosters.find(r => r.owner_id === userId);
       if (!myRoster) continue;
 
       const leagueType   = classifyLeague(league);
       const leagueUrl    = `https://sleeper.com/leagues/${league.league_id}`;
-      // Waivers are locked only if the league explicitly has waiver_lock set
-      const waiverLocked = league.settings?.waiver_lock === 1;
-      // DEBUG: log status and waiver settings so we can identify the right field
-      if (i < 5) console.log(`[DEBUG] "${league.name}" status=${league.status} waiver_lock=${league.settings?.waiver_lock} waiver_type=${league.settings?.waiver_type} waiver_clear_days=${league.settings?.waiver_clear_days}`);
+      // Only flag as locked if explicit waiver_lock setting — dynasty only applies anyway
+      const isDynastyLeague = leagueType === 'dynasty-lineup' || leagueType === 'dynasty-bestball';
+      const waiverLocked = isDynastyLeague && league.settings?.waiver_lock === 1;
 
-      const playerIds = [
-        ...(myRoster.players || []),
-        ...(myRoster.taxi   || []),
-        ...(myRoster.reserve|| [])
-      ];
-
-      // Dedupe within this roster
+      const playerIds = [...(myRoster.players||[]),...(myRoster.taxi||[]),...(myRoster.reserve||[])];
       const seen = new Set();
       for (const pid of playerIds) {
         if (seen.has(pid)) continue;
         seen.add(pid);
-
-        if (!playerMap[pid]) {
-          playerMap[pid] = { leagues: [] };
-        }
-
-        playerMap[pid].leagues.push({
-          leagueId:   league.league_id,
-          leagueName: league.name,
-          leagueType,
-          leagueUrl,
-          waiverLocked
-        });
+        if (!playerMap[pid]) playerMap[pid] = { leagues:[] };
+        playerMap[pid].leagues.push({ leagueId:league.league_id, leagueName:league.name, leagueType, leagueUrl, waiverLocked });
       }
     }
 
-    // 5. Build sorted array
     allPlayerData = Object.entries(playerMap).map(([pid, data]) => {
       const p = playersDb[pid] || {};
       const name = [p.first_name, p.last_name].filter(Boolean).join(' ') || `Player #${pid}`;
       return {
-        pid,
-        name,
+        pid, name,
         position: (p.position || p.fantasy_positions?.[0] || '?').toUpperCase(),
-        team:     p.team || 'FA',
-        count:    data.leagues.length,
-        leagues:  data.leagues,
+        team: p.team || 'FA',
+        count: data.leagues.length,
+        leagues: data.leagues,
         ktcValue: getKtcValue(name)
       };
     }).sort((a,b) => b.count - a.count);
 
-    // 6. Stats — static totals set here; filtered stats update live via renderList()
     document.getElementById('statLeagues').textContent = leagues.length;
     document.getElementById('statsRow').classList.add('visible');
 
-    // 7. Waiver scan — dynasty leagues only, players with KTC < 2000 OR no KTC value
-    //    Always runs so N/A players get suggestions too
+    // Waiver scan — dynasty leagues only
     waiverCache = {};
-    {
-      const dynastyLeagueIds = new Set();
-      for (const p of allPlayerData) {
-        if (p.ktcValue === null || p.ktcValue < 2000) {
-          for (const l of p.leagues) {
-            if (l.leagueType === 'dynasty-lineup' || l.leagueType === 'dynasty-bestball') {
-              dynastyLeagueIds.add(l.leagueId);
-            }
-          }
-        }
-      }
+    const dynastyLeagueIds = new Set();
+    for (const p of allPlayerData)
+      if (p.ktcValue === null || p.ktcValue < 2000)
+        for (const l of p.leagues)
+          if (l.leagueType === 'dynasty-lineup' || l.leagueType === 'dynasty-bestball')
+            dynastyLeagueIds.add(l.leagueId);
 
-      let waiverIdx = 0;
-      for (const lid of dynastyLeagueIds) {
-        waiverIdx++;
-        const leagueName = allPlayerData.flatMap(p => p.leagues).find(l => l.leagueId === lid)?.leagueName || lid;
-        setStatus(`Scanning waivers ${waiverIdx} of ${dynastyLeagueIds.size}: <strong>${escHtml(leagueName)}</strong>`);
-        const faData = await fetchFreeAgents(lid);
-        if (faData) {
-          waiverCache[lid] = findBestWaiverPickup(faData);
-        } else {
-          waiverCache[lid] = null;
-        }
-      }
+    let waiverIdx = 0;
+    for (const lid of dynastyLeagueIds) {
+      waiverIdx++;
+      const leagueName = allPlayerData.flatMap(p => p.leagues).find(l => l.leagueId === lid)?.leagueName || lid;
+      setStatus(`Scanning waivers ${waiverIdx} of ${dynastyLeagueIds.size}: <strong>${escHtml(leagueName)}</strong>`);
+      const faData = await fetchFreeAgents(lid);
+      waiverCache[lid] = faData ? findBestWaiverPickup(faData) : null;
     }
 
     hideStatus();
     renderList();
-
   } catch(err) {
     hideStatus();
     showError(err.message || 'An error occurred. Please try again.');
   }
-
   setScanning(false);
 }
 
 // ─── Render ───────────────────────────────────────────────────────────────────
 function renderList() {
-  const searchVal   = (document.getElementById('playerSearch').value || '').toLowerCase();
-  const listEl      = document.getElementById('playerList');
-  const controlsEl  = document.getElementById('resultsControls');
-  const emptyEl     = document.getElementById('emptyState');
-  const countEl     = document.getElementById('resultsCount');
-
+  const searchVal = (document.getElementById('playerSearch').value || '').toLowerCase();
+  const listEl    = document.getElementById('playerList');
+  const controlsEl= document.getElementById('resultsControls');
+  const emptyEl   = document.getElementById('emptyState');
+  const countEl   = document.getElementById('resultsCount');
   listEl.innerHTML = '';
 
   if (!allPlayerData.length) {
-    controlsEl.classList.remove('visible');
-    emptyEl.classList.remove('visible');
-    return;
+    controlsEl.classList.remove('visible'); emptyEl.classList.remove('visible'); return;
   }
 
-  // Build list with filtered league counts attached, then sort
   const withFiltered = allPlayerData
-    .map(p => ({
-      ...p,
-      visibleLeagues: p.leagues.filter(l => activeFilters.has(l.leagueType))
-    }))
+    .map(p => ({ ...p, visibleLeagues: p.leagues.filter(l => activeFilters.has(l.leagueType)) }))
     .filter(p => {
-      const matchSearch = !searchVal || p.name.toLowerCase().includes(searchVal);
+      const matchSearch   = !searchVal || p.name.toLowerCase().includes(searchVal);
       const matchLowValue = !lowValueOnly || (p.ktcValue === null || p.ktcValue < 2000);
-      return matchSearch && matchLowValue && p.visibleLeagues.length > 0;
+      const matchPos      = activePosFilters.has(posFilterKey(p.position));
+      return matchSearch && matchLowValue && matchPos && p.visibleLeagues.length > 0;
     })
-    .sort((a, b) => {
-      if (currentSort === 'ktc') {
-        const av = a.ktcValue ?? -1;
-        const bv = b.ktcValue ?? -1;
-        return bv - av;
-      }
+    .sort((a,b) => {
+      if (currentSort === 'ktc') return (b.ktcValue ?? -1) - (a.ktcValue ?? -1);
       return b.visibleLeagues.length - a.visibleLeagues.length;
     });
 
-  // maxCount based on filtered results for accurate share bars
   const maxCount = withFiltered.length ? withFiltered[0].visibleLeagues.length : 1;
-
-  // Count distinct leagues in view for percentage calculation
   const filteredLeagueIds = new Set();
-  allPlayerData.forEach(p => p.leagues.forEach(l => {
-    if (activeFilters.has(l.leagueType)) filteredLeagueIds.add(l.leagueId);
-  }));
+  allPlayerData.forEach(p => p.leagues.forEach(l => { if (activeFilters.has(l.leagueType)) filteredLeagueIds.add(l.leagueId); }));
   const filteredLeagueCount = filteredLeagueIds.size || 1;
-
-  // Update the live filtered stats
   updateFilteredStats(withFiltered, filteredLeagueIds.size);
-
   controlsEl.classList.add('visible');
   countEl.textContent = `${withFiltered.length} player${withFiltered.length !== 1 ? 's' : ''}`;
 
-  if (!withFiltered.length) {
-    emptyEl.classList.add('visible');
-    return;
-  }
-
+  if (!withFiltered.length) { emptyEl.classList.add('visible'); return; }
   emptyEl.classList.remove('visible');
 
   withFiltered.forEach((p, idx) => {
     const visibleLeagues = p.visibleLeagues;
     if (!visibleLeagues.length) return;
-
-    const pct = filteredLeagueCount > 0
-      ? ((visibleLeagues.length / filteredLeagueCount) * 100).toFixed(1)
-      : '0.0';
-
+    const pct = ((visibleLeagues.length / filteredLeagueCount) * 100).toFixed(1);
     const card = document.createElement('div');
     card.className = 'player-card';
+    card.style.animationDelay = `${Math.min(idx * 0.02, 0.4)}s`;
     const ktcClass = ktcBadgeClass(p.ktcValue);
     const ktcLabel = ktcBadgeLabel(p.ktcValue);
+    const pClass = posClass(p.position);
+
     card.innerHTML = `
       <div class="player-header" onclick="toggleCard(this)">
         <span class="rank-badge">#${idx+1}</span>
-        <div class="player-avatar" id="av-${p.pid}">
-          ${initials(p.name)}
-        </div>
+        <div class="player-avatar" id="av-${p.pid}">${initials(p.name)}</div>
         <div class="player-info">
           <div class="player-name">${escHtml(p.name)}</div>
-          <div class="player-meta">${p.position} · ${p.team}</div>
+          <div class="player-meta">
+            <span class="pos-badge ${pClass}">${p.position}</span>
+            <span>${p.team}</span>
+          </div>
         </div>
         <div class="share-info">
-          ${ktcLoaded ? `<span class="ktc-badge ${ktcClass}" title="KeepTradeCut value">${ktcLabel}</span>` : ''}
-          <div class="share-bar-wrap">
-            <div class="share-bar-fill" style="width:${(visibleLeagues.length/maxCount*100).toFixed(0)}%"></div>
-          </div>
+          ${ktcLoaded ? `<span class="ktc-badge ${ktcClass}">${ktcLabel}</span>` : ''}
+          <div class="share-bar-wrap"><div class="share-bar-fill" style="width:${(visibleLeagues.length/maxCount*100).toFixed(0)}%"></div></div>
           <div class="share-count">${visibleLeagues.length}<span class="share-pct">(${pct}%)</span></div>
         </div>
-        <svg class="expand-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        <svg class="expand-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="league-list">
         ${visibleLeagues.map(l => {
@@ -1350,30 +1028,29 @@ function renderList() {
               const wClass = cachedEntry.ktc !== null ? ktcBadgeClass(cachedEntry.ktc) : 'ktc-none';
               const wLabel = cachedEntry.ktc !== null ? cachedEntry.ktc.toLocaleString() : 'N/A';
               const playersUrl = `https://sleeper.com/leagues/${l.leagueId}/players`;
-              const lockedBadge = l.waiverLocked
-                ? `<span class="waiver-locked-badge">🔒 Waivers Locked</span>`
-                : '';
-              waiverHtml = `<a class="waiver-row waiver-row-link${l.waiverLocked ? ' waiver-locked' : ''}" href="${escHtml(playersUrl)}" target="_blank" rel="noopener" title="${l.waiverLocked ? 'Waivers locked in this league' : 'Open players page — name copied to clipboard'}" ${l.waiverLocked ? '' : `onclick="copyToClipboard('${escHtml(cachedEntry.name).replace(/'/g,"\\'")}')"`}>
+              const lockedBadge = l.waiverLocked ? `<span class="waiver-locked-badge">🔒 Waivers Locked</span>` : '';
+              waiverHtml = `<a class="waiver-row waiver-row-link${l.waiverLocked?' waiver-locked':''}"
+                href="${escHtml(playersUrl)}" target="_blank" rel="noopener"
+                title="${l.waiverLocked?'Waivers locked':'Open players page — name copied to clipboard'}"
+                ${l.waiverLocked?'':` onclick="copyToClipboard('${escHtml(cachedEntry.name).replace(/'/g,"\\'")}')"`}>
                 <span class="waiver-arrow">↳</span>
-                <span class="waiver-label">Best Available on Waivers</span>
+                <span class="waiver-label">Best on Waivers</span>
                 <span class="waiver-pos">${escHtml(cachedEntry.pos)}</span>
                 <span class="waiver-name">${escHtml(cachedEntry.name)}</span>
                 <span class="ktc-badge waiver-ktc ${wClass}">${wLabel}</span>
                 ${lockedBadge}
-                ${!l.waiverLocked ? `<svg class="league-link-icon" style="opacity:0.5;" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>` : ''}
+                ${!l.waiverLocked?`<svg class="league-link-icon" style="opacity:0.4;" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`:''}
               </a>`;
             } else if (cachedEntry === null) {
               waiverHtml = `<div class="waiver-row"><span class="waiver-arrow">↳</span><span class="waiver-label">No pickups found</span></div>`;
             }
-            // undefined = non-dynasty or not yet scanned, show nothing
           }
-          return `
-          <div class="league-item-wrap">
-            <a class="league-item" href="${escHtml(l.leagueUrl)}" target="_blank" rel="noopener" title="Open ${escHtml(l.leagueName)} on Sleeper">
+          return `<div class="league-item-wrap">
+            <a class="league-item" href="${escHtml(l.leagueUrl)}" target="_blank" rel="noopener">
               <div class="league-dot ${posDotClass(p.position)}" style="background:${meta.dot}"></div>
               <span class="league-type-tag ${meta.tag}">${meta.label} ${meta.sub}</span>
               <span class="league-name">${escHtml(l.leagueName)}</span>
-              <svg class="league-link-icon" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <svg class="league-link-icon" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </a>
             ${waiverHtml}
           </div>`;
@@ -1381,96 +1058,58 @@ function renderList() {
       </div>`;
 
     listEl.appendChild(card);
-
-    // Lazy load avatar
     loadAvatar(p.pid);
   });
 }
 
 function loadAvatar(pid) {
-  const avEl = document.getElementById(`av-${pid}`);
-  if (!avEl) return;
+  const el = document.getElementById(`av-${pid}`);
+  if (!el) return;
   const img = new Image();
-  img.onload = () => {
-    avEl.innerHTML = '';
-    avEl.appendChild(img);
-  };
+  img.onload = () => { el.innerHTML=''; el.appendChild(img); };
   img.src = `https://sleepercdn.com/content/nfl/players/thumb/${pid}.jpg`;
 }
 
-function toggleCard(header) {
-  const card = header.closest('.player-card');
-  card.classList.toggle('open');
-}
+function toggleCard(header) { header.closest('.player-card').classList.toggle('open'); }
+function filterPlayers() { renderList(); }
 
 function copyToClipboard(text) {
   navigator.clipboard.writeText(text).then(() => showToast(`"${text}" copied — paste into Sleeper search`));
 }
 
 function showToast(msg) {
-  let toast = document.getElementById('copyToast');
-  if (!toast) {
-    toast = document.createElement('div');
-    toast.id = 'copyToast';
-    toast.style.cssText = `
-      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-      background:var(--surface2); border:1px solid var(--accent);
-      color:var(--text); font-family:'DM Mono',monospace; font-size:12px;
-      padding:10px 18px; border-radius:8px; z-index:9999;
-      box-shadow:0 4px 20px rgba(0,0,0,0.4);
-      transition:opacity 0.3s; pointer-events:none;
-    `;
-    document.body.appendChild(toast);
+  let t = document.getElementById('copyToast');
+  if (!t) {
+    t = document.createElement('div'); t.id = 'copyToast';
+    t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+      background:var(--surface2);border:1px solid var(--amber);color:var(--text);
+      font-family:'JetBrains Mono',monospace;font-size:11px;padding:10px 18px;
+      border-radius:6px;z-index:9999;box-shadow:0 4px 24px rgba(0,0,0,0.5);
+      transition:opacity 0.3s;pointer-events:none;white-space:nowrap;`;
+    document.body.appendChild(t);
   }
-  toast.textContent = msg;
-  toast.style.opacity = '1';
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+  t.textContent = msg; t.style.opacity = '1';
+  clearTimeout(t._t);
+  t._t = setTimeout(() => { t.style.opacity='0'; }, 2500);
 }
 
-// ─── UI helpers ───────────────────────────────────────────────────────────────
 function clearResults() {
   document.getElementById('playerList').innerHTML = '';
   document.getElementById('statsRow').classList.remove('visible');
   document.getElementById('resultsControls').classList.remove('visible');
   document.getElementById('emptyState').classList.remove('visible');
   document.getElementById('errorMsg').classList.remove('visible');
-  allPlayerData = [];
-  waiverCache = {};
-  rosterCache = {};
+  allPlayerData=[]; waiverCache={}; rosterCache={};
 }
 
-function showStatus(html) {
-  document.getElementById('statusText').innerHTML = html;
-  document.getElementById('statusBar').classList.add('visible');
-}
+function showStatus(html)  { document.getElementById('statusText').innerHTML=html; document.getElementById('statusBar').classList.add('visible'); }
+function setStatus(html)   { document.getElementById('statusText').innerHTML=html; }
+function hideStatus()      { document.getElementById('statusBar').classList.remove('visible'); }
+function showError(msg)    { const el=document.getElementById('errorMsg'); el.textContent=msg; el.classList.add('visible'); }
+function setScanning(s)    { document.getElementById('scanBtn').disabled=s; }
+function escHtml(str)      { return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function setStatus(html) {
-  document.getElementById('statusText').innerHTML = html;
-}
-
-function hideStatus() {
-  document.getElementById('statusBar').classList.remove('visible');
-}
-
-function showError(msg) {
-  const el = document.getElementById('errorMsg');
-  el.textContent = msg;
-  el.classList.add('visible');
-}
-
-function setScanning(state) {
-  document.getElementById('scanBtn').disabled = state;
-}
-
-function escHtml(str) {
-  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// Allow Enter key to trigger scan
-document.getElementById('usernameInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') startScan();
-});
+document.getElementById('usernameInput').addEventListener('keydown', e => { if (e.key==='Enter') startScan(); });
 </script>
 </body>
 </html>
