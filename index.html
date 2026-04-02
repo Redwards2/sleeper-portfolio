@@ -971,8 +971,6 @@ async function fetchPlayersDb() {
 }
 
 async function fetchFreeAgents(leagueId) {
-  // Use roster data already fetched during the main scan — no second API call needed.
-  // If for some reason the league wasn't cached, fall back to a fresh fetch.
   let rostered = rosterCache[leagueId];
 
   if (!rostered) {
@@ -983,13 +981,13 @@ async function fetchFreeAgents(leagueId) {
     rostered = new Set();
     for (const roster of freshRosters) {
       for (const pid of [...(roster.players || []), ...(roster.taxi || []), ...(roster.reserve || [])]) {
-        rostered.add(pid);
+        rostered.add(String(pid));
       }
     }
   }
 
-  // Return all player IDs from the DB that aren't rostered in this league
-  return Object.keys(playersDb).filter(pid => !rostered.has(pid));
+  // Both sides forced to string for safe comparison
+  return Object.keys(playersDb).filter(pid => !rostered.has(String(pid)));
 }
 
 // Given a league's free agent pid list, find the best KTC pickup
@@ -1077,10 +1075,11 @@ async function startScan() {
       if (!rosters) continue;
 
       // Cache every rostered player in this league for accurate free agent detection later
+      // Force all IDs to strings — Sleeper API can return ints or strings inconsistently
       const leagueRostered = new Set();
       for (const roster of rosters) {
         for (const pid of [...(roster.players || []), ...(roster.taxi || []), ...(roster.reserve || [])]) {
-          leagueRostered.add(pid);
+          leagueRostered.add(String(pid));
         }
       }
       rosterCache[league.league_id] = leagueRostered;
@@ -1139,21 +1138,6 @@ async function startScan() {
     // 7. Waiver scan — dynasty leagues only, players with KTC < 2000 OR no KTC value
     //    Always runs so N/A players get suggestions too
     waiverCache = {};
-
-    // DEBUG: find Kenneth Walker's PID and check rosterCache
-    const kwEntry = Object.entries(playersDb).find(([pid, p]) =>
-      (p.first_name || '').toLowerCase() === 'kenneth' && (p.last_name || '').toLowerCase() === 'walker'
-    );
-    if (kwEntry) {
-      const [kwPid] = kwEntry;
-      console.log('[DEBUG] Kenneth Walker PID:', kwPid);
-      console.log('[DEBUG] rosterCache league IDs:', Object.keys(rosterCache));
-      for (const [lid, rSet] of Object.entries(rosterCache)) {
-        console.log(`[DEBUG] League ${lid} has KW rostered:`, rSet.has(kwPid), '| total rostered:', rSet.size);
-      }
-    } else {
-      console.log('[DEBUG] Kenneth Walker not found in playersDb');
-    }
     {
       const dynastyLeagueIds = new Set();
       for (const p of allPlayerData) {
