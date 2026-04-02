@@ -937,22 +937,33 @@ async function fetchFreeAgents(leagueId) {
 
 // Given a league's free agent pid list, find the best KTC pickup
 function findBestWaiverPickup(faPids) {
-  if (!ktcLoaded || !faPids || !faPids.length) return null;
+  if (!faPids || !faPids.length) return null;
   let bestPid = null, bestName = null, bestPos = '?', bestKtc = -1;
+  let fallbackPid = null, fallbackName = null, fallbackPos = '?';
+
   for (const pid of faPids) {
     const p = playersDb[pid];
     if (!p) continue;
     const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
     if (!name) continue;
-    const ktc = getKtcValue(name);
-    if (ktc !== null && ktc > bestKtc) {
-      bestKtc  = ktc;
-      bestPid  = pid;
-      bestName = name;
-      bestPos  = (p.position || p.fantasy_positions?.[0] || '?').toUpperCase();
+    const pos = (p.position || p.fantasy_positions?.[0] || '?').toUpperCase();
+    // Skip non-skill positions (kickers, def, IDPs, coaches etc.)
+    if (['K','DEF','FB','P'].includes(pos)) continue;
+
+    // Track best KTC-matched player
+    if (ktcLoaded) {
+      const ktc = getKtcValue(name);
+      if (ktc !== null && ktc > bestKtc) {
+        bestKtc = ktc; bestPid = pid; bestName = name; bestPos = pos;
+      }
     }
+    // Always track a fallback (first valid skill player) in case nothing matches KTC
+    if (!fallbackPid) { fallbackPid = pid; fallbackName = name; fallbackPos = pos; }
   }
-  return bestKtc > 0 ? { pid: bestPid, name: bestName, pos: bestPos, ktc: bestKtc } : null;
+
+  if (bestPid) return { pid: bestPid, name: bestName, pos: bestPos, ktc: bestKtc };
+  if (fallbackPid) return { pid: fallbackPid, name: fallbackName, pos: fallbackPos, ktc: null };
+  return null;
 }
 
 // ─── Main scan ────────────────────────────────────────────────────────────────
@@ -1050,13 +1061,13 @@ async function startScan() {
     document.getElementById('statLeagues').textContent = leagues.length;
     document.getElementById('statsRow').classList.add('visible');
 
-    // 7. Waiver scan — dynasty leagues only, players with KTC < 2000
-    //    Collect which dynasty league IDs contain at least one low-value player
+    // 7. Waiver scan — dynasty leagues only, players with KTC < 2000 OR no KTC value
+    //    Collect which dynasty league IDs contain at least one low/unknown-value player
     waiverCache = {};
     if (ktcLoaded) {
       const dynastyLeagueIds = new Set();
       for (const p of allPlayerData) {
-        if ((p.ktcValue ?? 9999) < 2000) {
+        if (p.ktcValue === null || p.ktcValue < 2000) {
           for (const l of p.leagues) {
             if (l.leagueType === 'dynasty-lineup' || l.leagueType === 'dynasty-bestball') {
               dynastyLeagueIds.add(l.leagueId);
@@ -1184,18 +1195,19 @@ function renderList() {
         ${visibleLeagues.map(l => {
           const meta = TYPE_META[l.leagueType] || TYPE_META['redraft-lineup'];
           const isDynasty = l.leagueType === 'dynasty-lineup' || l.leagueType === 'dynasty-bestball';
-          const isLowValue = (p.ktcValue ?? 9999) < 2000;
+          const isLowValue = p.ktcValue === null || p.ktcValue < 2000;
           const cachedEntry = waiverCache.hasOwnProperty(l.leagueId) ? waiverCache[l.leagueId] : undefined;
           let waiverHtml = '';
           if (isDynasty && isLowValue) {
             if (cachedEntry) {
-              const wClass = ktcBadgeClass(cachedEntry.ktc);
+              const wClass = cachedEntry.ktc !== null ? ktcBadgeClass(cachedEntry.ktc) : 'ktc-none';
+              const wLabel = cachedEntry.ktc !== null ? cachedEntry.ktc.toLocaleString() : 'N/A';
               waiverHtml = `<div class="waiver-row">
                 <span class="waiver-arrow">↳</span>
                 <span class="waiver-label">Best Available</span>
                 <span class="waiver-pos">${escHtml(cachedEntry.pos)}</span>
                 <span class="waiver-name">${escHtml(cachedEntry.name)}</span>
-                <span class="ktc-badge waiver-ktc ${wClass}">${cachedEntry.ktc.toLocaleString()}</span>
+                <span class="ktc-badge waiver-ktc ${wClass}">${wLabel}</span>
               </div>`;
             } else if (cachedEntry === null) {
               waiverHtml = `<div class="waiver-row"><span class="waiver-arrow">↳</span><span class="waiver-label">No pickups found</span></div>`;
