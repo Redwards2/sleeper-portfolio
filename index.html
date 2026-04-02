@@ -986,16 +986,29 @@ async function fetchFreeAgents(leagueId) {
     }
   }
 
-  // Only return players whose name appears in the KTC CSV — filters to ~500 relevant players
-  // and eliminates retired/historical/irrelevant players automatically
+  // Only return players whose name appears in the KTC CSV.
+  // For duplicate names in the DB (retired + active same name), keep only the highest PID
+  // since Sleeper always assigns newer players higher IDs.
+  const highestPidForName = {};
+  for (const [pid, p] of Object.entries(playersDb)) {
+    const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
+    if (!name) continue;
+    const norm = normalizeName(name);
+    if (ktcMap[norm] === undefined) continue; // only care about KTC players
+    if (!highestPidForName[norm] || Number(pid) > Number(highestPidForName[norm])) {
+      highestPidForName[norm] = pid;
+    }
+  }
+  // Build a set of the canonical PIDs (highest per name)
+  const canonicalPids = new Set(Object.values(highestPidForName));
+
   return Object.keys(playersDb).filter(pid => {
     if (rostered.has(String(pid))) return false;
+    if (!canonicalPids.has(pid)) return false; // not the canonical (most recent) version
     const p = playersDb[pid];
     if (!p) return false;
     const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
     if (!name) return false;
-    // TEMP: block known false positive
-    if (normalizeName(name) === 'kenneth walker') return false;
     return ktcMap[normalizeName(name)] !== undefined;
   });
 }
@@ -1161,17 +1174,6 @@ async function startScan() {
       }
 
       let waiverIdx = 0;
-
-      // DEBUG: find Kenneth Walker's actual PID and rosterCache status for first dynasty league
-      const kwAll = Object.entries(playersDb).filter(([,p]) =>
-        normalizeName([p.first_name,p.last_name].filter(Boolean).join(' ')) === 'kenneth walker'
-      );
-      console.log('[DEBUG] All KW PIDs in playersDb:', kwAll.map(([pid,p])=>({pid,team:p.team,status:p.status})));
-      const firstDynastyLid = [...dynastyLeagueIds][0];
-      if (firstDynastyLid && rosterCache[firstDynastyLid]) {
-        kwAll.forEach(([pid]) => console.log(`[DEBUG] PID ${pid} in rosterCache[${firstDynastyLid}]:`, rosterCache[firstDynastyLid].has(String(pid))));
-        console.log('[DEBUG] Sample of rosterCache PIDs:', [...rosterCache[firstDynastyLid]].slice(0,5));
-      }
       for (const lid of dynastyLeagueIds) {
         waiverIdx++;
         const leagueName = allPlayerData.flatMap(p => p.leagues).find(l => l.leagueId === lid)?.leagueName || lid;
