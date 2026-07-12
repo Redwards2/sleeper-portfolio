@@ -496,6 +496,156 @@ input[type="text"]::placeholder { color: var(--muted); }
 .pos-dot-def { background:var(--muted); }
 .pos-dot-default { background:var(--muted); }
 
+/* ── TAB NAV ── */
+.tab-nav {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 10px 20px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: -1px;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── DRAFT BOARD ── */
+.draft-input-section {
+  display: flex; gap: 10px; margin-bottom: 20px; align-items: stretch;
+}
+.draft-input-section input[type="text"] {
+  flex: 1; padding-left: 14px;
+}
+
+.btn-secondary {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  border-radius: 6px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 15px; letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 0 20px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.btn-secondary:hover { border-color: var(--amber); color: var(--amber); }
+.btn-secondary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.draft-info-bar {
+  display: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  gap: 24px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.draft-info-bar.visible { display: flex; }
+
+.draft-info-item { display: flex; flex-direction: column; gap: 2px; }
+.draft-info-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 22px; color: var(--amber); line-height: 1;
+}
+.draft-info-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted);
+}
+.draft-status-badge {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  padding: 4px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px;
+}
+.draft-status-drafting { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+.draft-status-complete { background: rgba(100,116,139,0.15); color: var(--muted2); border: 1px solid var(--border2); }
+.draft-status-pre     { background: rgba(245,166,35,0.15); color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+
+/* Draft controls */
+.draft-controls {
+  display: none; justify-content: space-between; align-items: center;
+  margin-bottom: 14px; gap: 10px; flex-wrap: wrap;
+}
+.draft-controls.visible { display: flex; }
+
+/* Draft player rows */
+.draft-player-list { display: flex; flex-direction: column; gap: 3px; }
+
+.draft-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 10px 14px;
+  transition: border-color 0.15s;
+  animation: fadeUp 0.15s ease both;
+}
+.draft-row:hover { border-color: var(--border2); }
+
+.draft-row-rank {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--muted); width: 26px; text-align: right; flex-shrink: 0;
+}
+
+.draft-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--surface2); border: 1px solid var(--border2);
+  flex-shrink: 0; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: 12px; color: var(--muted);
+}
+.draft-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.draft-player-info { flex: 1; min-width: 0; }
+.draft-player-name {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: 16px; letter-spacing: 0.3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.draft-player-meta { font-size: 11px; color: var(--muted2); margin-top: 2px; display: flex; gap: 6px; align-items: center; }
+
+/* Exposure column */
+.draft-exposure {
+  display: flex; flex-direction: column; align-items: flex-end;
+  flex-shrink: 0; min-width: 72px;
+}
+.draft-exp-pct {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: 20px; line-height: 1;
+}
+.draft-exp-pct.high  { color: var(--amber); }
+.draft-exp-pct.mid   { color: #7eb5ff; }
+.draft-exp-pct.low   { color: var(--muted2); }
+.draft-exp-pct.none  { color: var(--muted); }
+.draft-exp-lbl {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;
+}
+
+.draft-hint {
+  text-align: center; padding: 48px 0;
+  color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  line-height: 1.8;
+}
+
 /* ── FOOTER ── */
 footer {
   padding:40px 0; text-align:center; color:var(--muted);
@@ -531,6 +681,15 @@ footer a:hover { color:var(--amber); }
     </div>
     <div class="header-tag">2026 Season</div>
   </header>
+
+  <!-- Tab navigation -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('portfolio')">Portfolio</button>
+    <button class="tab-btn" onclick="switchTab('draft')">Draft Board</button>
+  </div>
+
+  <!-- ═══ PORTFOLIO TAB ═══ -->
+  <div id="tab-portfolio" class="tab-panel active">
 
   <div class="search-section">
     <div class="input-wrap">
@@ -611,6 +770,72 @@ footer a:hover { color:var(--amber); }
     <p>No players match your current filters.</p>
   </div>
 
+  </div><!-- end tab-portfolio -->
+
+  <!-- ═══ DRAFT BOARD TAB ═══ -->
+  <div id="tab-draft" class="tab-panel">
+
+    <div class="draft-input-section">
+      <input type="text" id="draftInput" placeholder="Paste Sleeper draft URL or draft ID..." autocomplete="off"
+             onkeydown="if(event.key==='Enter') loadDraft()" />
+      <button class="btn-scan" id="draftLoadBtn" onclick="loadDraft()">LOAD</button>
+      <button class="btn-secondary" id="draftRefreshBtn" onclick="refreshDraft()" disabled title="Refresh picks">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:block"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      </button>
+    </div>
+
+    <div class="draft-info-bar" id="draftInfoBar">
+      <div class="draft-info-item"><div class="draft-info-val" id="draftInfoName">—</div><div class="draft-info-lbl">Draft Name</div></div>
+      <div class="draft-info-item"><div class="draft-info-val" id="draftInfoType">—</div><div class="draft-info-lbl">League Type</div></div>
+      <div class="draft-info-item"><div class="draft-info-val" id="draftInfoTeams">—</div><div class="draft-info-lbl">Teams</div></div>
+      <div class="draft-info-item"><div class="draft-info-val" id="draftInfoRounds">—</div><div class="draft-info-lbl">Rounds</div></div>
+      <div class="draft-info-item"><div class="draft-info-val" id="draftInfoPick">—</div><div class="draft-info-lbl">Pick</div></div>
+      <div class="draft-info-item"><div class="draft-info-val" id="draftInfoAvail">—</div><div class="draft-info-lbl">Available</div></div>
+      <span class="draft-status-badge" id="draftStatusBadge">—</span>
+    </div>
+
+    <!-- Manager selector — appears after draft loads -->
+    <div class="filter-panel" id="draftUserPanel" style="display:none; margin-bottom:20px;">
+      <div class="filter-panel-label">View Exposure For</div>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <select id="draftUserSelect" onchange="selectDraftUser()" style="
+          background:var(--bg2); border:1px solid var(--border2); border-radius:6px;
+          color:var(--text); font-family:'Barlow',sans-serif; font-size:14px;
+          padding:8px 12px; outline:none; cursor:pointer; flex:1; min-width:180px;
+          transition:border-color 0.2s;">
+          <option value="">Select a manager...</option>
+        </select>
+        <div id="draftUserStatus" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted);"></div>
+      </div>
+    </div>
+
+    <div class="draft-controls" id="draftControls">
+      <div class="results-count" id="draftCount"></div>
+      <div class="controls-right">
+        <div class="sort-toggle">
+          <button class="sort-btn active" id="draftSortAdp"      onclick="setDraftSort('adp')">ADP</button>
+          <button class="sort-btn"        id="draftSortKtc"      onclick="setDraftSort('ktc')">KTC</button>
+          <button class="sort-btn"        id="draftSortExposure" onclick="setDraftSort('exposure')">Exposure</button>
+          <button class="sort-btn"        id="draftSortPos"      onclick="setDraftSort('pos')">Position</button>
+        </div>
+        <div class="pill-group" id="draftPosFilter" style="display:flex;gap:6px;">
+          <div class="pill active" data-dpos="QB" onclick="toggleDraftPos(this)"><div class="check"></div>QB</div>
+          <div class="pill active" data-dpos="RB" onclick="toggleDraftPos(this)"><div class="check"></div>RB</div>
+          <div class="pill active" data-dpos="WR" onclick="toggleDraftPos(this)"><div class="check"></div>WR</div>
+          <div class="pill active" data-dpos="TE" onclick="toggleDraftPos(this)"><div class="check"></div>TE</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="draft-player-list" id="draftPlayerList"></div>
+
+    <div class="draft-hint" id="draftHint">
+      Paste a Sleeper draft URL or draft ID above and hit LOAD.<br>
+      Then select a manager from the dropdown to see their ownership shares next to each available player.
+    </div>
+
+  </div><!-- end tab-draft -->
+
   <footer>
     Built for <a href="https://sleeper.com" target="_blank">Sleeper</a> fantasy &nbsp;·&nbsp;
     Data via Sleeper public API &nbsp;·&nbsp;
@@ -631,6 +856,7 @@ let waiverCache = {};
 let rosterCache = {};
 let excludeRookies = true;
 let lowValueOnly = false;
+let portfolioUserId = null; // stored after portfolio scan for draft tab reuse
 
 // ─── Filter toggles ───────────────────────────────────────────────────────────
 function toggleFilter(pill) {
@@ -861,6 +1087,7 @@ async function startScan() {
   try {
     const user = await fetchUser(username);
     const userId = user.user_id;
+    portfolioUserId = userId;
 
     if (!Object.keys(playersDb).length) {
       setStatus('Loading player database (one-time, ~5s)...');
@@ -1109,6 +1336,486 @@ function hideStatus()      { document.getElementById('statusBar').classList.remo
 function showError(msg)    { const el=document.getElementById('errorMsg'); el.textContent=msg; el.classList.add('visible'); }
 function setScanning(s)    { document.getElementById('scanBtn').disabled=s; }
 function escHtml(str)      { return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ─── Tab switching ────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.textContent.toLowerCase().includes(tab === 'portfolio' ? 'portfolio' : 'draft')) b.classList.add('active');
+  });
+}
+
+// ─── Draft state ──────────────────────────────────────────────────────────────
+let draftData         = null;
+let draftPicks        = [];
+let draftAdpMap       = {};
+let draftAdpLoaded    = false;
+let draftSort         = 'adp';
+let draftPosFilter    = new Set(['QB','RB','WR','TE']);
+let draftLeagueType   = null;   // detected type: 'redraft-bestball' etc.
+let draftLeagueUsers  = [];     // [{user_id, display_name, username}]
+let draftSelectedUser = null;   // {user_id, display_name}
+let draftExposureCache = {};    // userId-leagueType -> {playerMap:{pid:count}, totalLeagues:n}
+
+// ─── Draft helpers ────────────────────────────────────────────────────────────
+function detectDraftLeagueType(draft) {
+  const s = draft.settings || {};
+  const nameLower = (draft.metadata?.name || '').toLowerCase();
+
+  // Bestball: explicit setting OR common name patterns
+  const isBestball = s.best_ball === 1 ||
+                     nameLower.includes('bestball') ||
+                     nameLower.includes('best ball') ||
+                     /\bbb\b/.test(nameLower); // matches " bb " or "bb " at start/end
+
+  // Dynasty: only reliable indicators (NOT round count)
+  const isDynasty  = s.type === 2 || s.type === '2' ||
+                     (s.taxi_slots && s.taxi_slots > 0) ||
+                     nameLower.includes('dynasty');
+
+  if (isDynasty && isBestball) return 'dynasty-bestball';
+  if (isDynasty)               return 'dynasty-lineup';
+  if (isBestball)              return 'redraft-bestball';
+  return 'redraft-lineup';
+}
+
+const LEAGUE_TYPE_LABELS = {
+  'dynasty-lineup':   'Dynasty Lineup',
+  'dynasty-bestball': 'Dynasty Bestball',
+  'redraft-lineup':   'Redraft Lineup',
+  'redraft-bestball': 'Redraft Bestball',
+};
+
+async function fetchLeagueUsers(leagueId) {
+  if (!leagueId) return [];
+  try {
+    const r = await fetch(`${API}/league/${leagueId}/users`);
+    if (!r.ok) return [];
+    return r.json();
+  } catch(e) { return []; }
+}
+
+// Lightweight exposure fetch — only leagues of matchType, no waiver scan
+async function fetchUserExposureForType(userId, matchType) {
+  const cacheKey = `${userId}-${matchType}`;
+  if (draftExposureCache[cacheKey]) return draftExposureCache[cacheKey];
+
+  // If this matches the portfolio scan user, reuse allPlayerData
+  if (userId === portfolioUserId && allPlayerData.length) {
+    const playerMap = {};
+    const leagueIds = new Set();
+    allPlayerData.forEach(pd => {
+      const leagues = pd.leagues.filter(l => l.leagueType === matchType);
+      leagues.forEach(l => leagueIds.add(l.leagueId));
+      if (leagues.length) playerMap[String(pd.pid)] = leagues.length;
+    });
+    const result = { playerMap, totalLeagues: leagueIds.size };
+    draftExposureCache[cacheKey] = result;
+    return result;
+  }
+
+  // Otherwise fetch fresh
+  const leagues = await fetchLeagues(userId, '2026');
+  if (!leagues || !leagues.length) return { playerMap: {}, totalLeagues: 0 };
+
+  const matchingLeagues = leagues.filter(l => classifyLeague(l) === matchType);
+  const leagueIds = new Set(matchingLeagues.map(l => l.league_id));
+  const playerMap = {};
+
+  for (const league of matchingLeagues) {
+    const rosters = await fetchRosters(league.league_id);
+    if (!rosters) continue;
+    const myRoster = rosters.find(r => r.owner_id === userId);
+    if (!myRoster) continue;
+    const pids = [...(myRoster.players||[]),...(myRoster.taxi||[]),...(myRoster.reserve||[])];
+    const seen = new Set();
+    for (const pid of pids) {
+      if (seen.has(pid)) continue;
+      seen.add(pid);
+      playerMap[String(pid)] = (playerMap[String(pid)] || 0) + 1;
+    }
+  }
+
+  const result = { playerMap, totalLeagues: leagueIds.size };
+  draftExposureCache[cacheKey] = result;
+  return result;
+}
+
+async function selectDraftUser() {
+  const select = document.getElementById('draftUserSelect');
+  const userId = select.value;
+  if (!userId) { draftSelectedUser = null; renderDraftBoard(); return; }
+
+  const user = draftLeagueUsers.find(u => u.user_id === userId);
+  draftSelectedUser = user || { user_id: userId, display_name: userId };
+
+  const statusEl = document.getElementById('draftUserStatus');
+  statusEl.textContent = 'Loading exposure data...';
+
+  showDraftStatus(`Loading leagues for ${escHtml(draftSelectedUser.display_name)}...`);
+  try {
+    await fetchUserExposureForType(userId, draftLeagueType);
+    statusEl.textContent = `Showing ${LEAGUE_TYPE_LABELS[draftLeagueType] || draftLeagueType} leagues`;
+  } catch(e) {
+    statusEl.textContent = 'Could not load exposure data';
+  }
+  hideDraftStatus();
+  renderDraftBoard();
+}
+
+// ─── Draft API ────────────────────────────────────────────────────────────────
+function parseDraftId(input) {
+  const trimmed = input.trim();
+  // Handle full URL: sleeper.com/draft/nfl/123456...
+  const urlMatch = trimmed.match(/\/draft\/[^/]+\/(\d{15,})/);
+  if (urlMatch) return urlMatch[1];
+  // Handle raw numeric ID
+  if (/^\d{10,}$/.test(trimmed)) return trimmed;
+  return null;
+}
+
+async function fetchDraft(draftId) {
+  const r = await fetch(`${API}/draft/${draftId}`);
+  if (!r.ok) throw new Error('Draft not found. Check the URL or ID.');
+  return r.json();
+}
+
+async function fetchDraftPicks(draftId) {
+  const r = await fetch(`${API}/draft/${draftId}/picks`);
+  if (!r.ok) return [];
+  return r.json();
+}
+
+async function fetchDraftAdp(draft) {
+  const s = draft.settings || {};
+  const isDynasty  = s.type === 2 || s.type === '2' || (s.taxi_slots && s.taxi_slots > 0) ||
+                     (draft.metadata?.name || '').toLowerCase().includes('dynasty');
+  const leagueType = isDynasty ? 'dynasty' : 'redraft';
+  const scoring    = draft.scoring_settings || s.scoring_settings || {};
+  const rec        = scoring.rec ?? s.rec ?? 1;
+  const scoringType = rec >= 1 ? 'ppr' : rec >= 0.5 ? 'half_ppr' : 'std';
+  const season      = draft.season || new Date().getFullYear();
+
+  // Try multiple endpoint variations
+  const endpoints = [
+    `${API}/players/nfl/stats/drafts/${leagueType}/${scoringType}/${season}`,
+    `${API}/players/nfl/stats/drafts/redraft/${scoringType}/${season}`,
+    `${API}/players/nfl/stats/drafts/${leagueType}/ppr/${season}`,
+  ];
+
+  for (const url of endpoints) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) continue;
+      const data = await r.json();
+      if (!data || typeof data !== 'object') continue;
+      const keys = Object.keys(data);
+      if (keys.length === 0) continue;
+      // Log what we got back to diagnose the format
+      console.log(`[ADP] endpoint: ${url}`);
+      console.log(`[ADP] sample entry for key "${keys[0]}":`, data[keys[0]]);
+      console.log(`[ADP] total entries:`, keys.length);
+      return data;
+    } catch(e) { continue; }
+  }
+  console.log('[ADP] All endpoints returned empty or failed');
+  return {};
+}
+
+// ─── Load draft ───────────────────────────────────────────────────────────────
+async function loadDraft() {
+  const input  = document.getElementById('draftInput').value;
+  const draftId = parseDraftId(input);
+  if (!draftId) {
+    showDraftError('Could not parse a draft ID. Paste a Sleeper draft URL or a numeric draft ID.');
+    return;
+  }
+
+  // Ensure player DB is loaded (needed to match player IDs to names)
+  if (!Object.keys(playersDb).length) {
+    showDraftStatus('Loading player database...');
+    try { playersDb = await fetchPlayersDb(); } catch(e) { showDraftError('Failed to load player database.'); return; }
+  }
+  await loadKtcData();
+
+  showDraftStatus('Fetching draft...');
+  document.getElementById('draftLoadBtn').disabled = true;
+
+  try {
+    draftData  = await fetchDraft(draftId);
+    draftLeagueType = detectDraftLeagueType(draftData);
+    showDraftStatus('Fetching picks & ADP...');
+    const [picks, adp] = await Promise.all([
+      fetchDraftPicks(draftData.draft_id),
+      fetchDraftAdp(draftData)
+    ]);
+    draftPicks  = picks;
+    draftAdpMap = adp;
+    draftAdpLoaded = Object.keys(draftAdpMap).length > 0;
+    draftSort = draftAdpLoaded ? 'adp' : 'ktc';
+    updateDraftSortButtons();
+
+    // Fetch league users for the manager dropdown
+    if (draftData.league_id) {
+      showDraftStatus('Fetching league managers...');
+      draftLeagueUsers = await fetchLeagueUsers(draftData.league_id);
+
+      const select = document.getElementById('draftUserSelect');
+      select.innerHTML = '<option value="">Select a manager...</option>';
+      draftLeagueUsers
+        .sort((a, b) => (a.display_name||'').localeCompare(b.display_name||''))
+        .forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u.user_id;
+          opt.textContent = u.display_name || u.username || u.user_id;
+          // Auto-select if this user matches portfolio scan
+          if (u.user_id === portfolioUserId) opt.selected = true;
+          select.appendChild(opt);
+        });
+
+      document.getElementById('draftUserPanel').style.display = '';
+
+      // Auto-load exposure if portfolio user is in this draft
+      if (portfolioUserId && draftLeagueUsers.some(u => u.user_id === portfolioUserId)) {
+        draftSelectedUser = draftLeagueUsers.find(u => u.user_id === portfolioUserId);
+        await fetchUserExposureForType(portfolioUserId, draftLeagueType);
+        document.getElementById('draftUserStatus').textContent =
+          `Showing ${LEAGUE_TYPE_LABELS[draftLeagueType] || draftLeagueType} leagues`;
+      }
+    }
+
+    document.getElementById('draftRefreshBtn').disabled = false;
+    hideDraftStatus();
+    renderDraftBoard();
+  } catch(e) {
+    hideDraftStatus();
+    showDraftError(e.message);
+  }
+  document.getElementById('draftLoadBtn').disabled = false;
+}
+
+async function refreshDraft() {
+  if (!draftData) return;
+  showDraftStatus('Refreshing picks...');
+  document.getElementById('draftRefreshBtn').disabled = true;
+  try {
+    draftPicks = await fetchDraftPicks(draftData.draft_id);
+    hideDraftStatus();
+    renderDraftBoard();
+  } catch(e) { hideDraftStatus(); }
+  document.getElementById('draftRefreshBtn').disabled = false;
+}
+
+// ─── Draft sort/filter ────────────────────────────────────────────────────────
+function updateDraftSortButtons() {
+  ['adp','ktc','exposure','pos'].forEach(m => {
+    const btn = document.getElementById(`draftSort${m.charAt(0).toUpperCase()+m.slice(1)}`);
+    if (btn) btn.classList.toggle('active', m === draftSort);
+  });
+  // Always show ADP button — falls back to KTC order if Sleeper ADP unavailable
+}
+
+function setDraftSort(mode) {
+  draftSort = mode;
+  updateDraftSortButtons();
+  renderDraftBoard();
+}
+
+function toggleDraftPos(pill) {
+  const pos = pill.dataset.dpos;
+  if (draftPosFilter.has(pos)) { draftPosFilter.delete(pos); pill.classList.remove('active'); }
+  else { draftPosFilter.add(pos); pill.classList.add('active'); }
+  renderDraftBoard();
+}
+
+// ─── Render draft board ───────────────────────────────────────────────────────
+function renderDraftBoard() {
+  if (!draftData) return;
+
+  const s = draftData.settings || {};
+  const totalPicks  = (s.rounds || 0) * (s.teams || 0);
+  const picksMade   = draftPicks.length;
+  const status      = draftData.status || 'pre_draft';
+
+  document.getElementById('draftInfoName').textContent   = draftData.metadata?.name || `Draft ${draftData.draft_id}`;
+  document.getElementById('draftInfoType').textContent   = LEAGUE_TYPE_LABELS[draftLeagueType] || '—';
+  document.getElementById('draftInfoTeams').textContent  = s.teams || '—';
+  document.getElementById('draftInfoRounds').textContent = s.rounds || '—';
+  document.getElementById('draftInfoPick').textContent   = status === 'complete' ? 'Done' : `${picksMade + 1}/${totalPicks||'?'}`;
+
+  // Get exposure data for selected user
+  const cacheKey = draftSelectedUser ? `${draftSelectedUser.user_id}-${draftLeagueType}` : null;
+  const exposureData = cacheKey ? draftExposureCache[cacheKey] : null;
+  const expPlayerMap   = exposureData?.playerMap   || {};
+  const expTotalLeagues = exposureData?.totalLeagues ?? 0;
+  const hasExposure = draftSelectedUser && exposureData;
+
+  // Build picked set
+  const pickedIds = new Set(draftPicks.map(pk => String(pk.player_id)).filter(Boolean));
+
+  // Build canonical PID per player name.
+  // Priority: KTC map → ADP map → all active skill players from DB
+  const highestPidForName = {};
+  const SKILL = ['QB','RB','WR','TE'];
+
+  if (ktcLoaded && Object.keys(ktcMap).length > 0) {
+    // KTC pool — only players in the CSV
+    for (const [pid, p] of Object.entries(playersDb)) {
+      const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
+      if (!name) continue;
+      const norm = normalizeName(name);
+      if (ktcMap[norm] === undefined) continue;
+      if (!highestPidForName[norm] || Number(pid) > Number(highestPidForName[norm]))
+        highestPidForName[norm] = pid;
+    }
+  } else if (draftAdpLoaded && Object.keys(draftAdpMap).length > 0) {
+    // ADP pool — players Sleeper has ADP data for (covers main case when KTC not loaded)
+    for (const pid of Object.keys(draftAdpMap)) {
+      const p = playersDb[pid] || playersDb[String(pid)];
+      if (!p) continue;
+      const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
+      if (!name) continue;
+      const primaryPos = (p.position || '').toUpperCase();
+      const fantasyPos = (p.fantasy_positions || []).map(fp => (fp||'').toUpperCase());
+      const hasSkillPos = SKILL.includes(primaryPos) || fantasyPos.some(fp => SKILL.includes(fp));
+      if (!hasSkillPos) continue;
+      const norm = normalizeName(name);
+      if (!highestPidForName[norm] || Number(pid) > Number(highestPidForName[norm]))
+        highestPidForName[norm] = pid;
+    }
+  } else {
+    // Fallback — all active skill players in the DB with a current team
+    for (const [pid, p] of Object.entries(playersDb)) {
+      if (!p.team) continue;
+      const primaryPos = (p.position || '').toUpperCase();
+      if (!SKILL.includes(primaryPos)) continue;
+      const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
+      if (!name) continue;
+      const norm = normalizeName(name);
+      if (!highestPidForName[norm] || Number(pid) > Number(highestPidForName[norm]))
+        highestPidForName[norm] = pid;
+    }
+  }
+  const available = Object.entries(highestPidForName)
+    .filter(([, pid]) => !pickedIds.has(String(pid)))
+    .map(([norm, pid]) => {
+      const p = playersDb[pid] || {};
+      const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
+      const primaryPos = (p.position || '').toUpperCase();
+      const fantasyPos = (p.fantasy_positions || []).map(fp => (fp||'').toUpperCase());
+      const pos = SKILL.includes(primaryPos) ? primaryPos : (fantasyPos.find(fp => SKILL.includes(fp)) || '?');
+      const ktc = ktcMap[norm] ?? null;
+      const adpEntry   = draftAdpMap[pid] || draftAdpMap[String(pid)];
+      const adpRank    = typeof adpEntry === 'number' ? adpEntry
+                       : adpEntry?.adp ?? adpEntry?.average_pick ?? adpEntry?.rank ?? null;
+      const searchRank = p.search_rank ?? null;
+      const ownedCount = expPlayerMap[String(pid)] || 0;
+
+      return { pid, name, pos, team: p.team || 'FA', ktc, adpRank, searchRank, ownedCount };
+    })
+    .filter(p => draftPosFilter.has(p.pos));
+
+  // Sort
+  available.sort((a, b) => {
+    if (draftSort === 'adp') {
+      // Use Sleeper ADP endpoint data if available, otherwise fall back to search_rank
+      // (Sleeper's built-in player relevance rank, a reliable ADP proxy)
+      const aRank = a.adpRank ?? a.searchRank;
+      const bRank = b.adpRank ?? b.searchRank;
+      if (aRank === null && bRank === null) return (b.ktc ?? -1) - (a.ktc ?? -1);
+      if (aRank === null) return 1;
+      if (bRank === null) return -1;
+      return aRank - bRank;
+    }
+    if (draftSort === 'exposure') return b.ownedCount - a.ownedCount;
+    if (draftSort === 'pos') {
+      const order = { QB:0, RB:1, WR:2, TE:3 };
+      const pd = (order[a.pos] ?? 9) - (order[b.pos] ?? 9);
+      return pd !== 0 ? pd : (b.ktc ?? -1) - (a.ktc ?? -1);
+    }
+    return (b.ktc ?? -1) - (a.ktc ?? -1);
+  });
+
+  document.getElementById('draftInfoAvail').textContent = available.length;
+
+  const statusClass = status === 'drafting' ? 'draft-status-drafting'
+                    : status === 'complete'  ? 'draft-status-complete'
+                    : 'draft-status-pre';
+  const badge = document.getElementById('draftStatusBadge');
+  badge.textContent = status === 'drafting' ? '● Live' : status === 'complete' ? 'Complete' : 'Pre-Draft';
+  badge.className = `draft-status-badge ${statusClass}`;
+
+  document.getElementById('draftInfoBar').classList.add('visible');
+  document.getElementById('draftControls').classList.add('visible');
+  document.getElementById('draftHint').style.display = 'none';
+  document.getElementById('draftCount').textContent = `${available.length} available`;
+
+  const listEl = document.getElementById('draftPlayerList');
+  listEl.innerHTML = '';
+
+  available.forEach((p, idx) => {
+    const ktcClass = ktcBadgeClass(p.ktc);
+    const ktcLabel = ktcBadgeLabel(p.ktc);
+    const pClass   = posClass(p.pos);
+
+    // Share count display: X/Total or — if no user selected
+    let shareHtml, shareClass;
+    if (!hasExposure) {
+      shareHtml  = '<span style="color:var(--muted);font-size:13px;">—</span>';
+    } else {
+      const pct = expTotalLeagues > 0 ? (p.ownedCount / expTotalLeagues * 100) : 0;
+      const color = p.ownedCount === 0 ? 'var(--muted)'
+                  : pct >= 50 ? 'var(--amber)'
+                  : pct >= 25 ? '#7eb5ff'
+                  : '#4ade80';
+      shareHtml = `<span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;color:${color};line-height:1;">${p.ownedCount}/${expTotalLeagues}</span>`;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'draft-row';
+    row.style.animationDelay = `${Math.min(idx * 0.012, 0.3)}s`;
+    row.innerHTML = `
+      <div class="draft-row-rank" style="min-width:38px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);">
+        ${p.adpRank !== null ? p.adpRank.toFixed(1) : (p.searchRank !== null ? p.searchRank : '—')}
+      </div>
+      <div class="draft-avatar" id="dav-${p.pid}">${initials(p.name)}</div>
+      <div class="draft-player-info">
+        <div class="draft-player-name">${escHtml(p.name)}</div>
+        <div class="draft-player-meta">
+          <span class="pos-badge ${pClass}">${p.pos}</span>
+          <span>${p.team}</span>
+        </div>
+      </div>
+      ${ktcLoaded ? `<span class="ktc-badge ${ktcClass}" style="margin-right:12px;">${ktcLabel}</span>` : ''}
+      <div class="draft-exposure" style="min-width:56px;text-align:right;">
+        ${shareHtml}
+        ${hasExposure ? `<div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Owned</div>` : ''}
+      </div>`;
+    listEl.appendChild(row);
+    loadDraftAvatar(p.pid);
+  });
+}
+
+function loadDraftAvatar(pid) {
+  const el = document.getElementById(`dav-${pid}`);
+  if (!el) return;
+  const img = new Image();
+  img.onload = () => { el.innerHTML = ''; el.appendChild(img); };
+  img.src = `https://sleepercdn.com/content/nfl/players/thumb/${pid}.jpg`;
+}
+
+function showDraftStatus(msg) {
+  document.getElementById('statusText').innerHTML = msg;
+  document.getElementById('statusBar').classList.add('visible');
+}
+function hideDraftStatus() { document.getElementById('statusBar').classList.remove('visible'); }
+function showDraftError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg; el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 4000);
+}
 
 document.getElementById('usernameInput').addEventListener('keydown', e => { if (e.key==='Enter') startScan(); });
 </script>
